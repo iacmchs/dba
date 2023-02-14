@@ -1,0 +1,57 @@
+name: 'Example site'
+driver: pgsql
+databases:
+  # Create a partial dump of this DB.
+  main:
+    credentials:
+      host: 1.2.3.4
+      port: 123
+      database: main
+      user: poirot
+      password: PaSs-0-WoRd
+    # Any tables that are NOT mentioned here would be fully copied from the DB.
+    tables:
+      # Get 1.5% of rows (random) from this table.
+      tasks: 0.015
+      # Don't copy data from tables which name matches this regex.
+      field_revision_:
+        regex: 'field_revision_.*'
+        get: 0
+      # Get all rows from this table matching some conditions.
+      user:
+        get: 1
+        where: 'active = 1 AND created > current_date - interval "1 year"'
+        # Also anonymize some data.
+        override:
+          password: DummyPassword
+          username:
+            concat:
+              - random_name
+              - @id
+          last_name:
+            concat:
+              - random_item: ['Malfoy', 'Carolinus', 'Amon', 'Melf', 'Rune', 'Black', 'Walton', 'Everett', 'Morrow', 'Flagg']
+              - '-'
+              - @id
+          first_name:
+            random_item: ['Frodo', 'Sam', 'Gandalf', 'Aragorn', 'Gimli', 'Legolas', 'Boromir', 'Gollum', 'Sauron', 'Galadriel']
+          email: random_email
+          birthday: random_date
+          bio:
+            random_words:
+              min: 5
+              max: 255
+          inn:
+            random_int:
+              min: 100000000000
+              max: 200000000000
+          passport: '9999 999999'
+          message: ''
+  # Create a full dump of this DB.
+  queue:
+    credentials:
+      host: 1.2.3.4
+      port: 123
+      database: queue
+      user: poirot
+      password: PaSs-0-WoRd
