@@ -14,6 +14,13 @@ class PersistenceConnector
     {
     }
 
+    /**
+     * Create persistent connection to DB
+     *
+     * @param string $dsn
+     *
+     * @return PersistentInterface
+     */
     public function create(string $dsn): PersistentInterface
     {
         $config = $this->configLoader->load();
