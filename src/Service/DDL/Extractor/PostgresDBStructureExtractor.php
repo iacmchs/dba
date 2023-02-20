@@ -4,22 +4,51 @@ declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
 
+use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
+use App\Model\DDL\ConstraintStructure;
+use App\Model\DDL\FieldStructure;
+use App\Model\DDL\TableStructure;
 use App\Service\DBConnectionSetterInterface;
 use PDO;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
-class PostgresDBStructureExtractor implements DBStructureExtractorInterface, DBDriverNameInterface, DBConnectionSetterInterface
+class PostgresDBStructureExtractor implements
+    DBStructureExtractorInterface,
+    DBDriverNameInterface,
+    DBConnectionSetterInterface
 {
-    private PDO $conn;
+    private ?PDO $conn = null;
 
-    public function extractTables()
+    private DenormalizerInterface $denormalizer;
+
+    public function __construct(DenormalizerInterface $denormalizer)
     {
-        dump($this->conn);
-        die;
+        $this->denormalizer = $denormalizer;
     }
 
-    public function extractTable(string $name)
+    /**
+     * @return TableStructure[]
+     * @throws ConnectionNotInjected
+     * @throws ExceptionInterface
+     */
+    public function extractTables(): array
     {
-        // TODO: Implement extractTable() method.
+        $tablesStructures = [];
+        foreach ($this->getTablesList() as $table) {
+            $tablesStructures[] = $this->getTableStructure($table);
+        }
+
+        return $tablesStructures;
+    }
+
+    /**
+     * @throws ExceptionInterface
+     * @throws ConnectionNotInjected
+     */
+    public function extractTable(string $name): TableStructure
+    {
+        return $this->getTableStructure($name);
     }
 
     public function getDBDriverName(): string
@@ -30,5 +59,114 @@ class PostgresDBStructureExtractor implements DBStructureExtractorInterface, DBD
     public function setDBConnection(PDO $connection): void
     {
         $this->conn = $connection;
+    }
+
+    /**
+     * @return string[]
+     * @throws ConnectionNotInjected
+     */
+    private function getTablesList(): array
+    {
+        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'";
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute();
+
+        $tables = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $tables[] = $row['table_name'];
+        }
+
+        /** @psalm-var string[] */
+        return $tables;
+    }
+
+    /**
+     * @throws ConnectionNotInjected
+     * @throws ExceptionInterface
+     */
+    private function getTableStructure(string $tableName): TableStructure
+    {
+        return new TableStructure(
+            $tableName,
+            $this->getTableFieldsStructure($tableName),
+            $this->getTableConstraintsStructure($tableName)
+        );
+    }
+
+    /**
+     * @return ConstraintStructure[]
+     * @throws ConnectionNotInjected
+     * @throws ExceptionInterface
+     */
+    private function getTableConstraintsStructure(string $tableName): array
+    {
+        $sql = "SELECT
+                    tc.constraint_name,
+                    tc.constraint_type,
+                    kcu.column_name,
+                    ccu.table_name AS referenced_table_name,
+                    ccu.column_name AS referenced_column_name,
+                    rc.update_rule,
+                    rc.delete_rule
+                FROM information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                JOIN information_schema.constraint_column_usage AS ccu
+                    ON ccu.constraint_name = tc.constraint_name
+                LEFT JOIN information_schema.referential_constraints AS rc
+                    ON rc.constraint_name = tc.constraint_name
+                WHERE tc.table_name = :table_name AND tc.constraint_type IN ('PRIMARY KEY', 'FOREIGN KEY')
+                ORDER BY kcu.ordinal_position";
+
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute(['table_name' => $tableName]);
+
+        $constraints = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $constraints[] = $this->denormalizer->denormalize($row, ConstraintStructure::class, 'array');
+        }
+
+        return $constraints;
+    }
+
+    /**
+     * @return FieldStructure[]
+     * @throws ExceptionInterface
+     * @throws ConnectionNotInjected
+     */
+    private function getTableFieldsStructure(string $tableName): array
+    {
+        $sql = "SELECT
+                    column_name,
+                    data_type,
+                    is_nullable,
+                    column_default,
+                    character_maximum_length
+                FROM
+                    information_schema.columns
+                WHERE
+                    table_name = :table_name";
+
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute(['table_name' => $tableName]);
+
+        $fields = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @throws ConnectionNotInjected
+     */
+    private function getConnection(): PDO
+    {
+        if ($this->conn === null) {
+            throw ConnectionNotInjected::create();
+        }
+
+        return $this->conn;
     }
 }

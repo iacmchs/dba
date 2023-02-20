@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\Service\DDL\InvalidStructureExtractorInterface;
+use App\Exception\Service\DDL\StructureExtractorNotFound;
 use App\Service\DDL\ExtractorFactory;
 use PDO;
 use PDOException;
@@ -23,6 +25,13 @@ class ExportCommand extends Command
         $this->extractorFactory = $extractorFactory;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     * @throws InvalidStructureExtractorInterface
+     * @throws StructureExtractorNotFound
+     */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $host = '192.168.17.155';
@@ -33,8 +42,7 @@ class ExportCommand extends Command
         try {
             $pdo = new PDO("pgsql:host=$host;dbname=$dbname;port=5532", $username, $password);
 
-            dump($this->extractorFactory->createExtractor($pdo)->extractTables());
-            die;
+            $struct = $this->extractorFactory->createExtractor($pdo)->extractTables();
 
         } catch (PDOException $e) {
             echo "Connection failed: " . $e->getMessage();
