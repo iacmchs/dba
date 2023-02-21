@@ -1,2 +1,0 @@
-persistence:
-    'pgsql': App\Infrastructure\DbalPersistence

@@ -3,35 +3,29 @@
 namespace App\Infrastructure;
 
 use App\Tool\DsnParser;
-use RuntimeException;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception;
 
 class PersistenceConnector
 {
-    public function __construct(
-        private readonly PersistenceConfigLoader $configLoader,
-        private readonly DsnParser $dsnParser
-    )
+    public function __construct(private readonly DsnParser $dsnParser)
     {
     }
 
     /**
      * Create persistent connection to DB
+     * Example dsn: pgsql://user:password@127.0.0.1:5432/database
      *
      * @param string $dsn
      *
-     * @return PersistentInterface
+     * @return Connection
+     * @throws Exception
      */
-    public function create(string $dsn): PersistentInterface
+    public function create(string $dsn): Connection
     {
-        $config = $this->configLoader->load();
-
         $parsed = $this->dsnParser->parse($dsn);
-        $driverName = $parsed['driver'];
 
-        if (!isset($config[$driverName])) {
-            throw new RuntimeException('No driver ' . $driverName);
-        }
-
-        return new($config[$driverName])($parsed);
+        return DriverManager::getConnection($parsed);
     }
 }
