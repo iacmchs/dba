@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure;
 
-use App\Tool\DsnParser;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
