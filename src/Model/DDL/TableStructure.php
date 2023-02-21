@@ -4,29 +4,22 @@ declare(strict_types=1);
 
 namespace App\Model\DDL;
 
-class TableStructure
+class TableStructure implements DDLQueryPartInterface
 {
     private string $name;
 
     /**
-     * @var FieldStructure[]
+     * @var DDLQueryPartInterface[]
      */
     private array $fields;
 
     /**
-     * @var ConstraintStructure[]
+     * @param DDLQueryPartInterface[] $fields
      */
-    private array $constraints;
-
-    /**
-     * @param FieldStructure[] $fields
-     * @param ConstraintStructure[] $constraints
-     */
-    public function __construct(string $name, array $fields, array $constraints)
+    public function __construct(string $name, array $fields)
     {
         $this->name = $name;
         $this->fields = $fields;
-        $this->constraints = $constraints;
     }
 
     public function getName(): string
@@ -34,13 +27,25 @@ class TableStructure
         return $this->name;
     }
 
+    /**
+     * @return DDLQueryPartInterface[]
+     */
     public function getFields(): array
     {
         return $this->fields;
     }
 
-    public function getConstraints(): array
+    public function toDDL(): string
     {
-        return $this->constraints;
+        return sprintf(
+            "CREATE TABLE $this->name \n(\n%s\n);",
+            implode(
+                ",\n",
+                array_map(
+                    fn(DDLQueryPartInterface $f): string => "     " . $f->toDDL(),
+                    $this->fields
+                )
+            )
+        );
     }
 }

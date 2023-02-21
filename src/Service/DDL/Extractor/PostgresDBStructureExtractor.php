@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service\DDL\Extractor;
 
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
-use App\Model\DDL\ConstraintStructure;
+use App\Model\DDL\DDLQueryPartInterface;
 use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
 use App\Service\DBConnectionSetterInterface;
@@ -86,51 +86,11 @@ class PostgresDBStructureExtractor implements
      */
     private function getTableStructure(string $tableName): TableStructure
     {
-        return new TableStructure(
-            $tableName,
-            $this->getTableFieldsStructure($tableName),
-            $this->getTableConstraintsStructure($tableName)
-        );
+        return new TableStructure($tableName, $this->getTableFieldsStructure($tableName));
     }
 
     /**
-     * @return ConstraintStructure[]
-     * @throws ConnectionNotInjected
-     * @throws ExceptionInterface
-     */
-    private function getTableConstraintsStructure(string $tableName): array
-    {
-        $sql = "SELECT
-                    tc.constraint_name,
-                    tc.constraint_type,
-                    kcu.column_name,
-                    ccu.table_name AS referenced_table_name,
-                    ccu.column_name AS referenced_column_name,
-                    rc.update_rule,
-                    rc.delete_rule
-                FROM information_schema.table_constraints AS tc
-                JOIN information_schema.key_column_usage AS kcu
-                    ON tc.constraint_name = kcu.constraint_name
-                JOIN information_schema.constraint_column_usage AS ccu
-                    ON ccu.constraint_name = tc.constraint_name
-                LEFT JOIN information_schema.referential_constraints AS rc
-                    ON rc.constraint_name = tc.constraint_name
-                WHERE tc.table_name = :table_name AND tc.constraint_type IN ('PRIMARY KEY', 'FOREIGN KEY')
-                ORDER BY kcu.ordinal_position";
-
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute(['table_name' => $tableName]);
-
-        $constraints = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $constraints[] = $this->denormalizer->denormalize($row, ConstraintStructure::class, 'array');
-        }
-
-        return $constraints;
-    }
-
-    /**
-     * @return FieldStructure[]
+     * @return DDLQueryPartInterface[]
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
      */
@@ -154,6 +114,8 @@ class PostgresDBStructureExtractor implements
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
         }
+
+        dump($fields);
 
         return $fields;
     }

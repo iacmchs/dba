@@ -43,6 +43,7 @@ class ExportCommand extends Command
             $pdo = new PDO("pgsql:host=$host;dbname=$dbname;port=5532", $username, $password);
 
             $struct = $this->extractorFactory->createExtractor($pdo)->extractTables();
+//            dump($struct->toDDL());
 
         } catch (PDOException $e) {
             echo "Connection failed: " . $e->getMessage();
