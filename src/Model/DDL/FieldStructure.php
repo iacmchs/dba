@@ -29,8 +29,7 @@ class FieldStructure implements DDLQueryPartInterface
         string  $isNull,
         ?string $default,
         ?int    $length,
-    )
-    {
+    ){
         $this->name = $name;
         $this->type = $type;
         $this->isNull = $isNull;
@@ -38,31 +37,49 @@ class FieldStructure implements DDLQueryPartInterface
         $this->length = $length;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;
     }
 
+    /**
+     * @return string
+     */
     public function getType(): string
     {
         return $this->type;
     }
 
+    /**
+     * @return string
+     */
     public function getIsNull(): string
     {
         return $this->isNull;
     }
 
+    /**
+     * @return string|null
+     */
     public function getDefault(): ?string
     {
         return $this->default;
     }
 
+    /**
+     * @return int|null
+     */
     public function getLength(): ?int
     {
         return $this->length;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function toDDL(): string
     {
         $query = "$this->name";

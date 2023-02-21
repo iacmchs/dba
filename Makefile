@@ -22,3 +22,6 @@ cli:
 
 console:
 	docker-compose run --rm php-cli ./bin/console $(arg)
+
+test:
+	docker-compose run --rm php-cli ./vendor/bin/phpunit $(arg)

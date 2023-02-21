@@ -11,9 +11,15 @@ use App\Service\DDL\Extractor\DBStructureExtractorInterface;
 use PDO;
 use Traversable;
 
+/**
+ * ExtractorFactory create instance which can extract db metadata.
+ * An extractor instance is created based on connection instance
+ */
 class ExtractorFactory
 {
     /**
+     * Available extractors
+     *
      * @var array<array-key, DBStructureExtractorInterface>
      */
     private array $extractors = [];

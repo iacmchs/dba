@@ -14,12 +14,15 @@ class DDLQueryPartTest extends TestCase
     /**
      * @dataProvider dataProvider
      */
-    public function testFieldStructureDDL(DDLQueryPartInterface $input, string $expected): void
+    public function testDDLQueryInterfaceReturnValidDDL(DDLQueryPartInterface $input, string $expected): void
     {
         self::assertEquals($input->toDDL(), $expected);
     }
 
-    public function dataProvider(): array
+    /**
+     * @return array<array-key, array>
+     */
+    public static function dataProvider(): array
     {
         return [
             [

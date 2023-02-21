@@ -22,6 +22,9 @@ class TableStructure implements DDLQueryPartInterface
         $this->fields = $fields;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;
@@ -35,6 +38,9 @@ class TableStructure implements DDLQueryPartInterface
         return $this->fields;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function toDDL(): string
     {
         return sprintf(

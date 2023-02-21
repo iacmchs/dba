@@ -13,6 +13,9 @@ use PDO;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
+/**
+ * The class extract tables metadata from a postgresql db
+ */
 class PostgresDBStructureExtractor implements
     DBStructureExtractorInterface,
     DBDriverNameInterface,
@@ -28,7 +31,7 @@ class PostgresDBStructureExtractor implements
     }
 
     /**
-     * @return TableStructure[]
+     * @inheritDoc
      * @throws ConnectionNotInjected
      * @throws ExceptionInterface
      */
@@ -43,6 +46,7 @@ class PostgresDBStructureExtractor implements
     }
 
     /**
+     * @inheritDoc
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
      */
@@ -51,11 +55,17 @@ class PostgresDBStructureExtractor implements
         return $this->getTableStructure($name);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getDBDriverName(): string
     {
         return 'pgsql';
     }
 
+    /**
+     * @inheritDoc
+     */
     public function setDBConnection(PDO $connection): void
     {
         $this->conn = $connection;

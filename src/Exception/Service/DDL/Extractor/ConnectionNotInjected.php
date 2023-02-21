@@ -8,6 +8,9 @@ use Exception;
 
 class ConnectionNotInjected extends Exception
 {
+    /**
+     * @return self
+     */
     public static function create(): self
     {
         return new self("DB connection not injected");

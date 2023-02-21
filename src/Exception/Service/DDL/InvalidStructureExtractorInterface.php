@@ -8,6 +8,10 @@ use Exception;
 
 class InvalidStructureExtractorInterface extends Exception
 {
+    /**
+     * @param string $interface
+     * @return self
+     */
     public static function byInterface(string $interface): self
     {
         return new self(sprintf("Extractor must implements a %s interface", $interface));
