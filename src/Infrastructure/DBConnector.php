@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure;
 
+use App\Exception\DsnNotValidException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
@@ -25,6 +26,9 @@ class DBConnector
     public function create(string $dsn): Connection
     {
         $parsed = $this->dsnParser->parse($dsn);
+        if (!$parsed) {
+            throw new DsnNotValidException($dsn);
+        }
 
         return DriverManager::getConnection($parsed);
     }
