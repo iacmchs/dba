@@ -8,6 +8,7 @@ use App\Exception\DsnNotValidException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Tools\DsnParser;
 
 class DBConnector
 {
