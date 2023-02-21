@@ -8,14 +8,14 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 
-class PersistenceConnector
+class DBConnector
 {
     public function __construct(private readonly DsnParser $dsnParser)
     {
     }
 
     /**
-     * Create persistent connection to DB
+     * Create connection to DB
      * Example dsn: pgsql://user:password@127.0.0.1:5432/database
      *
      * @param string $dsn
