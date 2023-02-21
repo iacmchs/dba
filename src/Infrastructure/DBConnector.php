@@ -24,6 +24,10 @@ class DBConnector
      *
      * @return Connection
      * @throws Exception
+     *  Different DBAL exceptions.
+     *
+     * @throws DsnNotValidException
+     *   Invalid DSN exception.
      */
     public function create(string $dsn): Connection
     {
