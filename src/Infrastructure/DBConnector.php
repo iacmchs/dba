@@ -20,12 +20,16 @@ class DBConnector
     }
 
     /**
-     * Create connection to DB
-     * Example dsn : pgsql://user:password@127.0.0.1:5432/database
-     *               pdo-pgsql://user:password@127.0.0.1:5432/database
+     * Creates a DB connection.
+     *
      * @param string $dsn
+     *   DSN credentials. Examples:
+     *   pgsql://user:password@127.0.0.1:5432/database
+     *   pdo-pgsql://user:password@127.0.0.1:5432/database
      *
      * @return Connection
+     *   DBAL Connection.
+     *
      * @throws Exception
      *  Different DBAL exceptions.
      *
