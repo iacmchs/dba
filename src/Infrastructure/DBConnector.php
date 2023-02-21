@@ -10,6 +10,9 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Tools\DsnParser;
 
+/**
+ * @file Class helps to connect to database.
+ */
 class DBConnector
 {
     public function __construct(private readonly DsnParser $dsnParser)
