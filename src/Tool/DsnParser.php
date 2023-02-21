@@ -1,10 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tool;
 
 class DsnParser
 {
+    public function __construct(private readonly \Doctrine\DBAL\Tools\DsnParser $dsnParser)
+    {
+    }
+
     /**
      * Parse dsn url to array
      *
@@ -14,6 +19,6 @@ class DsnParser
      */
     public function parse(string $dsnUrl): array
     {
-        return (new \Doctrine\DBAL\Tools\DsnParser())->parse($dsnUrl);
+        return $this->dsnParser->parse($dsnUrl);
     }
 }
