@@ -11,8 +11,10 @@ use PDO;
 use PDOException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(name: 'app:export')]
 class ExportCommand extends Command
@@ -25,6 +27,18 @@ class ExportCommand extends Command
         $this->extractorFactory = $extractorFactory;
     }
 
+    public function configure(): void
+    {
+        $this
+            ->addArgument(
+                'dsn',
+                InputArgument::REQUIRED,
+                'dsn should match the pattern: "driver:host=your_host;dbname=your_dbname;port=your_port"'
+            )
+            ->addArgument('username', InputArgument::REQUIRED, 'DB user name')
+            ->addArgument('password', InputArgument::REQUIRED, 'DB password');
+    }
+
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
@@ -34,20 +48,26 @@ class ExportCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $host = '192.168.17.155';
-        $dbname = 'passport';
-        $username = 'passport';
-        $password = 'P@ssw0rd';
+        // TODO Uncompleted method. Should be improved and finished.
+
+        $dsn = $input->getArgument('dsn');
+        $username = $input->getArgument('username');
+        $password = $input->getArgument('password');
+
+        $io = new SymfonyStyle($input, $output);
 
         try {
-            $pdo = new PDO("pgsql:host=$host;dbname=$dbname;port=5532", $username, $password);
+            $pdo = new PDO($dsn, $username, $password);
 
-            $struct = $this->extractorFactory->createExtractor($pdo)->extractTables();
-//            dump($struct->toDDL());
+            $this->extractorFactory->createExtractor($pdo)->extractTables();
 
         } catch (PDOException $e) {
-            echo "Connection failed: " . $e->getMessage();
+            $io->error("Connection failed: " . $e->getMessage());
+
+            return Command::FAILURE;
         }
+
+        $io->success('DB was dumped successfully');
 
         return Command::SUCCESS;
     }
