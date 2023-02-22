@@ -15,6 +15,9 @@ use Doctrine\DBAL\Tools\DsnParser;
  */
 class DBConnector
 {
+    /**
+     * @param DsnParser $dsnParser
+     */
     public function __construct(private readonly DsnParser $dsnParser)
     {
     }
