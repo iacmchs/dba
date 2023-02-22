@@ -28,18 +28,18 @@ class DBConnector
      * Creates a DB connection.
      *
      * @param string $dsn
-     *   DSN credentials. Examples:
-     *   pgsql://user:password@127.0.0.1:5432/database
-     *   pdo-pgsql://user:password@127.0.0.1:5432/database
+     *    DSN credentials. Examples:
+     *        pgsql://user:password@127.0.0.1:5432/database
+     *        pdo-pgsql://user:password@127.0.0.1:5432/database
      *
      * @return Connection
-     *   DBAL Connection.
+     *    DBAL Connection.
      *
      * @throws Exception
-     *  Different DBAL exceptions.
+     *    Different DBAL exceptions.
      *
      * @throws DsnNotValidException
-     *   Invalid DSN exception.
+     *    Invalid DSN exception.
      */
     public function create(string $dsn): Connection
     {
