@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file Exception on unsuccessful dsn.
+ */
+
 declare(strict_types=1);
 
 namespace App\Exception;
@@ -7,9 +11,6 @@ namespace App\Exception;
 use Exception;
 use JetBrains\PhpStorm\Pure;
 
-/**
- * @file Exception on unsuccessful dsn.
- */
 class DsnNotValidException extends Exception
 {
     private const MESSAGE = 'DSN %s is not valid';
