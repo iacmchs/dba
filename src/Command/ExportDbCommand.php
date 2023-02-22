@@ -1,4 +1,7 @@
 <?php
+/**
+ * @file The entry point to db anonymizer command.
+ */
 
 declare(strict_types=1);
 
@@ -16,17 +19,28 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'app:export')]
-class ExportCommand extends Command
+#[AsCommand(name: 'app:db-export')]
+class ExportDbCommand extends Command
 {
+    /**
+     * @var ExtractorFactory
+     */
     private ExtractorFactory $extractorFactory;
 
+    /**
+     * @param ExtractorFactory $extractorFactory
+     */
     public function __construct(ExtractorFactory $extractorFactory)
     {
         parent::__construct();
         $this->extractorFactory = $extractorFactory;
     }
 
+    /**
+     * Configure a command
+     *
+     * @return void
+     */
     public function configure(): void
     {
         $this
@@ -40,6 +54,8 @@ class ExportCommand extends Command
     }
 
     /**
+     * Run the app:db-export command
+     *
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int
@@ -48,7 +64,7 @@ class ExportCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        // TODO Uncompleted method. Should be improved and finished.
+        // @todo Uncompleted method. Should be improved and finished.
 
         $dsn = $input->getArgument('dsn');
         $username = $input->getArgument('username');
@@ -58,17 +74,13 @@ class ExportCommand extends Command
 
         try {
             $pdo = new PDO($dsn, $username, $password);
-
             $this->extractorFactory->createExtractor($pdo)->extractTables();
-
         } catch (PDOException $e) {
             $io->error("Connection failed: " . $e->getMessage());
-
             return Command::FAILURE;
         }
 
-        $io->success('DB was dumped successfully');
-
+        $io->success('Task was completed successfully');
         return Command::SUCCESS;
     }
 }
