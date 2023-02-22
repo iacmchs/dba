@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Provides DB connection regardless of DBMS used.
+ */
+
 declare(strict_types=1);
 
 namespace App\Infrastructure;
@@ -10,9 +15,6 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Tools\DsnParser;
 
-/**
- * @file Class helps to connect to database.
- */
 class DBConnector
 {
     /**
