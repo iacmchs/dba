@@ -1,4 +1,5 @@
 name: 'Example site'
+driver: pgsql
 databases:
   # Create a partial dump of this DB.
   main:
