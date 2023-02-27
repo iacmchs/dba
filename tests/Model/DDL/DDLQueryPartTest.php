@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file Test that checks how the structures implementing the DdlQueryPartInterface are transformed.
+ */
+
 declare(strict_types=1);
 
 namespace App\Tests\Model\DDL;
@@ -12,6 +16,8 @@ use PHPUnit\Framework\TestCase;
 class DDLQueryPartTest extends TestCase
 {
     /**
+     * Run test for $input.
+     *
      * @dataProvider dataProvider
      */
     public function testDDLQueryInterfaceReturnValidDDL(DdlQueryPartInterface $input, string $expected): void
@@ -20,6 +26,8 @@ class DDLQueryPartTest extends TestCase
     }
 
     /**
+     * The test cases data provider.
+     *
      * @return array<array-key, array>
      */
     public static function dataProvider(): array

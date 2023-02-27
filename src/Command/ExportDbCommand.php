@@ -37,7 +37,7 @@ class ExportDbCommand extends Command
     }
 
     /**
-     * Configure a command
+     * Configure a command.
      *
      * @return void
      */
@@ -54,7 +54,7 @@ class ExportDbCommand extends Command
     }
 
     /**
-     * Run the app:db-export command
+     * Run the app:db-export command.
      *
      * @param InputInterface $input
      * @param OutputInterface $output
@@ -80,7 +80,7 @@ class ExportDbCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->success('Task was completed successfully');
+        $io->success('Task was completed successfully.');
         return Command::SUCCESS;
     }
 }
