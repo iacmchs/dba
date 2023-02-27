@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file Implementation of the DbStructureExtractorInterface for a Postgresql.
+ */
+
 declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
@@ -8,26 +12,32 @@ use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
 use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
-use App\Service\DBConnectionSetterInterface;
+use App\Service\DbConnectionSetterInterface;
 use PDO;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
-/**
- * The class extract tables metadata from a postgresql db
- */
-class PostgresDBStructureExtractor implements
-    DBStructureExtractorInterface,
-    DBDriverNameInterface,
-    DBConnectionSetterInterface
+class PostgresDbStructureExtractor implements
+    DbStructureExtractorInterface,
+    DbDriverNameInterface,
+    DbConnectionSetterInterface
 {
+    /**
+     * DB connection.
+     *
+     * @var PDO|null
+     */
     private ?PDO $conn = null;
 
-    private DenormalizerInterface $denormalizer;
-
-    public function __construct(DenormalizerInterface $denormalizer)
+    /**
+     * Create db structure extractor for Postgresql.
+     *
+     * @param DenormalizerInterface $denormalizer
+     */
+    public function __construct(
+        private readonly DenormalizerInterface $denormalizer
+    )
     {
-        $this->denormalizer = $denormalizer;
     }
 
     /**
@@ -37,12 +47,12 @@ class PostgresDBStructureExtractor implements
      */
     public function extractTables(): array
     {
-        $tablesStructures = [];
+        $tableStructures = [];
         foreach ($this->getTablesList() as $table) {
-            $tablesStructures[] = $this->getTableStructure($table);
+            $tableStructures[] = $this->getTableStructure($table);
         }
 
-        return $tablesStructures;
+        return $tableStructures;
     }
 
     /**
@@ -58,7 +68,7 @@ class PostgresDBStructureExtractor implements
     /**
      * @inheritDoc
      */
-    public function getDBDriverName(): string
+    public function getDbDriverName(): string
     {
         return 'pgsql';
     }
@@ -66,12 +76,14 @@ class PostgresDBStructureExtractor implements
     /**
      * @inheritDoc
      */
-    public function setDBConnection(PDO $connection): void
+    public function setDbConnection(PDO $connection): void
     {
         $this->conn = $connection;
     }
 
     /**
+     * Return list of db tables.
+     *
      * @return string[]
      * @throws ConnectionNotInjected
      */
@@ -91,6 +103,8 @@ class PostgresDBStructureExtractor implements
     }
 
     /**
+     * Extract and return db table structure by name.
+     *
      * @throws ConnectionNotInjected
      * @throws ExceptionInterface
      */
@@ -100,6 +114,8 @@ class PostgresDBStructureExtractor implements
     }
 
     /**
+     * Extract and return table fields structures.
+     *
      * @return DdlQueryPartInterface[]
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
@@ -129,6 +145,8 @@ class PostgresDBStructureExtractor implements
     }
 
     /**
+     * Return db connection.
+     *
      * @throws ConnectionNotInjected
      */
     private function getConnection(): PDO

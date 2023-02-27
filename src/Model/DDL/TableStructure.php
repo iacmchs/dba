@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file An implementation of a table structure
+ * @file An implementation of a table structure.
  */
 
 declare(strict_types=1);
@@ -11,7 +11,7 @@ namespace App\Model\DDL;
 readonly class TableStructure implements DdlQueryPartInterface
 {
     /**
-     * Get instance of a TableStructure
+     * Get instance of a TableStructure.
      *
      * @param string $name
      * @param array $fields
@@ -29,7 +29,7 @@ readonly class TableStructure implements DdlQueryPartInterface
     }
 
     /**
-     * Return table name
+     * Return table name.
      *
      * @return string
      */
@@ -39,7 +39,7 @@ readonly class TableStructure implements DdlQueryPartInterface
     }
 
     /**
-     * Return table's fields
+     * Return table's fields.
      *
      * @return DdlQueryPartInterface[]
      */

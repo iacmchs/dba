@@ -6,7 +6,7 @@ services:
         autoconfigure: true
 
     _instanceof:
-        App\Service\DDL\Extractor\DBDriverNameInterface:
+        App\Service\DDL\Extractor\DbDriverNameInterface:
             tags: [ 'app.dbStructureExtractor' ]
 
     App\:

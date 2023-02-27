@@ -1,52 +1,59 @@
 <?php
 
+/**
+ * @file
+ * ExtractorFactory create instance which can extract db metadata.
+ *
+ * An extractor instance is created based on connection instance.
+ */
+
 declare(strict_types=1);
 
 namespace App\Service\DDL;
 
 use App\Exception\Service\DDL\InvalidStructureExtractorInterface;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
-use App\Service\DBConnectionSetterInterface;
-use App\Service\DDL\Extractor\DBStructureExtractorInterface;
+use App\Service\DbConnectionSetterInterface;
+use App\Service\DDL\Extractor\DbStructureExtractorInterface;
 use PDO;
 use Traversable;
 
-/**
- * ExtractorFactory create instance which can extract db metadata.
- * An extractor instance is created based on connection instance
- */
 class ExtractorFactory
 {
     /**
-     * Available extractors
+     * Available extractors.
      *
-     * @var array<array-key, DBStructureExtractorInterface>
+     * @var array<array-key, DbStructureExtractorInterface>
      */
     private array $extractors = [];
 
     /**
+     * Create an extractor factory instance.
+     *
      * @param Traversable $extractors
      * @throws InvalidStructureExtractorInterface
      */
     public function __construct(Traversable $extractors)
     {
         foreach ($extractors as $extractor) {
-            if (!$extractor instanceof DBStructureExtractorInterface) {
-                throw InvalidStructureExtractorInterface::byInterface(DBStructureExtractorInterface::class);
+            if (!$extractor instanceof DbStructureExtractorInterface) {
+                throw InvalidStructureExtractorInterface::byInterface(DbStructureExtractorInterface::class);
             }
 
             /** @psalm-suppress InvalidPropertyAssignmentValue,UndefinedInterfaceMethod */
-            $this->extractors[$extractor->getDBDriverName()] = $extractor;
+            $this->extractors[$extractor->getDbDriverName()] = $extractor;
         }
     }
 
     /**
+     * Create db structure extractor based on db connection.
+     *
      * @param PDO $connection
-     * @return DBStructureExtractorInterface
+     * @return DbStructureExtractorInterface
      * @throws StructureExtractorNotFound
      * @throws InvalidStructureExtractorInterface
      */
-    public function createExtractor(PDO $connection): DBStructureExtractorInterface
+    public function createExtractor(PDO $connection): DbStructureExtractorInterface
     {
         /** @var string $driverName */
         $driverName = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -55,11 +62,11 @@ class ExtractorFactory
         }
 
         $extractor = $this->extractors[$driverName];
-        if (!$extractor instanceof DBConnectionSetterInterface) {
-            throw InvalidStructureExtractorInterface::byInterface(DBConnectionSetterInterface::class);
+        if (!$extractor instanceof DbConnectionSetterInterface) {
+            throw InvalidStructureExtractorInterface::byInterface(DbConnectionSetterInterface::class);
         }
 
-        $extractor->setDBConnection($connection);
+        $extractor->setDbConnection($connection);
 
         return $extractor;
     }

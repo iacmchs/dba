@@ -1,15 +1,19 @@
 <?php
 
+/**
+ * @file Interface describe an db structure extractor.
+ */
+
 declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
 
 use App\Model\DDL\TableStructure;
 
-interface DBStructureExtractorInterface
+interface DbStructureExtractorInterface
 {
     /**
-     * Extract metadata from table by table name
+     * Extract all tables metadata.
      *
      * @return TableStructure[]
      */
@@ -17,7 +21,7 @@ interface DBStructureExtractorInterface
 
 
     /**
-     * Extract metadata from table by table name
+     * Extract table metadata by table name.
      *
      * @param string $name
      * @return TableStructure
