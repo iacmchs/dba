@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Model\DDL;
 
-use App\Model\DDL\DDLQueryPartInterface;
+use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
 use PHPUnit\Framework\TestCase;
@@ -14,7 +14,7 @@ class DDLQueryPartTest extends TestCase
     /**
      * @dataProvider dataProvider
      */
-    public function testDDLQueryInterfaceReturnValidDDL(DDLQueryPartInterface $input, string $expected): void
+    public function testDDLQueryInterfaceReturnValidDDL(DdlQueryPartInterface $input, string $expected): void
     {
         self::assertEquals($input->toDDL(), $expected);
     }

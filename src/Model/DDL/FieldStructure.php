@@ -1,43 +1,44 @@
 <?php
 
+/**
+ * @file An implementation of a table's field structure.
+ */
+
 declare(strict_types=1);
 
 namespace App\Model\DDL;
 
 use Symfony\Component\Serializer\Annotation\SerializedName;
 
-class FieldStructure implements DDLQueryPartInterface
+readonly class FieldStructure implements DdlQueryPartInterface
 {
-    #[SerializedName('column_name')]
-    private string $name;
-
-    #[SerializedName('data_type')]
-    private string $type;
-
-    #[SerializedName('is_nullable')]
-    private string $isNull;
-
-    #[SerializedName('column_default')]
-    private ?string $default;
-
-    #[SerializedName('character_maximum_length')]
-    private ?int $length;
-
+    /**
+     * Get instance of FieldStructure.
+     *
+     * @param string $name
+     * @param string $type
+     * @param string $isNull
+     * @param string|null $default
+     * @param int|null $length
+     */
     public function __construct(
-        string  $name,
-        string  $type,
-        string  $isNull,
-        ?string $default,
-        ?int    $length,
-    ){
-        $this->name = $name;
-        $this->type = $type;
-        $this->isNull = $isNull;
-        $this->default = $default;
-        $this->length = $length;
+        #[SerializedName('column_name')]
+        private string  $name,
+        #[SerializedName('data_type')]
+        private string  $type,
+        #[SerializedName('is_nullable')]
+        private string  $isNull,
+        #[SerializedName('column_default')]
+        private ?string $default,
+        #[SerializedName('character_maximum_length')]
+        private ?int    $length,
+    )
+    {
     }
 
     /**
+     * Return name of field.
+     *
      * @return string
      */
     public function getName(): string
@@ -46,6 +47,8 @@ class FieldStructure implements DDLQueryPartInterface
     }
 
     /**
+     * Return type of field.
+     *
      * @return string
      */
     public function getType(): string
@@ -54,6 +57,8 @@ class FieldStructure implements DDLQueryPartInterface
     }
 
     /**
+     * Return 'YES' if fields can be nullable and 'NO' otherwise.
+     *
      * @return string
      */
     public function getIsNull(): string
@@ -62,6 +67,8 @@ class FieldStructure implements DDLQueryPartInterface
     }
 
     /**
+     * Return field's default value.
+     *
      * @return string|null
      */
     public function getDefault(): ?string
@@ -70,6 +77,8 @@ class FieldStructure implements DDLQueryPartInterface
     }
 
     /**
+     * Return length of field's value.
+     *
      * @return int|null
      */
     public function getLength(): ?int
@@ -82,8 +91,7 @@ class FieldStructure implements DDLQueryPartInterface
      */
     public function toDDL(): string
     {
-        $query = "$this->name";
-        $query .= " $this->type";
+        $query = "$this->name $this->type";
 
         if ($this->length) {
             $query .= "($this->length)";

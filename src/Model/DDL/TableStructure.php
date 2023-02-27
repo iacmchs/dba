@@ -1,28 +1,36 @@
 <?php
 
+/**
+ * @file An implementation of a table structure
+ */
+
 declare(strict_types=1);
 
 namespace App\Model\DDL;
 
-class TableStructure implements DDLQueryPartInterface
+readonly class TableStructure implements DdlQueryPartInterface
 {
-    private string $name;
-
     /**
-     * @var DDLQueryPartInterface[]
+     * Get instance of a TableStructure
+     *
+     * @param string $name
+     * @param array $fields
      */
-    private array $fields;
-
-    /**
-     * @param DDLQueryPartInterface[] $fields
-     */
-    public function __construct(string $name, array $fields)
+    public function __construct(
+        private string $name,
+        /**
+         * Table's fields
+         *
+         * @var DdlQueryPartInterface[]
+         */
+        private array  $fields
+    )
     {
-        $this->name = $name;
-        $this->fields = $fields;
     }
 
     /**
+     * Return table name
+     *
      * @return string
      */
     public function getName(): string
@@ -31,7 +39,9 @@ class TableStructure implements DDLQueryPartInterface
     }
 
     /**
-     * @return DDLQueryPartInterface[]
+     * Return table's fields
+     *
+     * @return DdlQueryPartInterface[]
      */
     public function getFields(): array
     {
@@ -44,14 +54,17 @@ class TableStructure implements DDLQueryPartInterface
     public function toDDL(): string
     {
         return sprintf(
-            "CREATE TABLE $this->name \n(\n%s\n);",
+            "CREATE TABLE $this->name %s(%s%s%s);",
+            PHP_EOL,
+            PHP_EOL,
             implode(
-                ",\n",
+                ', ' . PHP_EOL,
                 array_map(
-                    fn(DDLQueryPartInterface $f): string => "     " . $f->toDDL(),
+                    fn(DdlQueryPartInterface $f): string => "     " . $f->toDDL(),
                     $this->fields
                 )
-            )
+            ),
+            PHP_EOL
         );
     }
 }

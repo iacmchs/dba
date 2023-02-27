@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service\DDL\Extractor;
 
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
-use App\Model\DDL\DDLQueryPartInterface;
+use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
 use App\Service\DBConnectionSetterInterface;
@@ -100,7 +100,7 @@ class PostgresDBStructureExtractor implements
     }
 
     /**
-     * @return DDLQueryPartInterface[]
+     * @return DdlQueryPartInterface[]
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
      */
@@ -124,8 +124,6 @@ class PostgresDBStructureExtractor implements
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
         }
-
-        dump($fields);
 
         return $fields;
     }
