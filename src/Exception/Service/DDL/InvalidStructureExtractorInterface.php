@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file Implementation of an exception that should be thrown if a instance of extractor doesn't implement a necessary
+ * interface.
+ */
+
 declare(strict_types=1);
 
 namespace App\Exception\Service\DDL;
@@ -9,6 +14,8 @@ use Exception;
 class InvalidStructureExtractorInterface extends Exception
 {
     /**
+     * Create exception instance with a prepared message.
+     *
      * @param string $interface
      * @return self
      */
