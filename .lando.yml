@@ -13,6 +13,8 @@ tooling:
   php:
     service: appserver
     cmd: php
+  composer:
+    service: appserver
   test:
     service: appserver
     cmd: php /app/vendor/bin/phpunit
