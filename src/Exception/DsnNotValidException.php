@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file Exception on unsuccessful dsn.
- */
-
 declare(strict_types=1);
 
 namespace App\Exception;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Provides DB connection regardless of DBMS used.
- */
-
 declare(strict_types=1);
 
 namespace App\Infrastructure;
@@ -17,9 +12,6 @@ use Doctrine\DBAL\Tools\DsnParser;
 
 class DBConnector
 {
-    /**
-     * @param DsnParser $dsnParser
-     */
     public function __construct(private readonly DsnParser $dsnParser)
     {
     }
