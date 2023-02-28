@@ -55,7 +55,8 @@ readonly class TableStructure implements DdlQueryPartInterface
     public function toDDL(): string
     {
         return sprintf(
-            "CREATE TABLE $this->name %s(%s%s%s);",
+            "CREATE TABLE %s %s(%s%s%s);",
+            $this->name,
             PHP_EOL,
             PHP_EOL,
             implode(

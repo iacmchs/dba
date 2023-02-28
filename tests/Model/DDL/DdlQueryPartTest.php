@@ -14,7 +14,7 @@ use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
 use PHPUnit\Framework\TestCase;
 
-class DDLQueryPartTest extends TestCase
+class DdlQueryPartTest extends TestCase
 {
     /**
      * Run test for $input.

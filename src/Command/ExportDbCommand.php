@@ -81,7 +81,7 @@ class ExportDbCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->success('Task was completed successfully.');
+        $io->success('Export completed.');
         return Command::SUCCESS;
     }
 }
