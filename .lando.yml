@@ -17,7 +17,11 @@ tooling:
     service: appserver
   test:
     service: appserver
-    cmd: php /app/vendor/bin/phpunit
+    cmd: composer test
+    description: 'Run phpunit'
+  psalm:
+    service: appserver
+    cmd: composer psalm
     description: 'Run phpunit'
   phpdebug:
     service: appserver
