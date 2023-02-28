@@ -8,7 +8,40 @@ or other sensitive data.
 We use [lando](https://lando.dev/) for development. Just run `lando start` and
 it would create necessary containers for you.
 
-### Useful commands
+### PHP Code Sniffer Configuration
+
+PHP Code Sniffer (phpcs) is used to detect violations of a defined coding
+standard. In this project it is executed automatically on `git push`, but also
+can be executed manually.
+
+It's recommended to install phpcs globally to avoid duplication while working
+with multiple projects.
+
+Note: in the example below we use `~/.config/composer/vendor/bin` path,
+if you have a different path then replace it with your value.
+
+1. Install phpcs with symfony rulesets:
+   ` composer global require escapestudios/symfony2-coding-standard`.
+2. To make `phpcs` and `phpcbf` commands available globally you may add the next
+   path to the `$PATH` variable (or just add a whole line) to the file you use -
+   `~/.profile`, `~/.bash_profile`, `~/.bashrc`, `~/.zshrc`:
+   ```
+   export PATH="$PATH:$HOME/.config/composer/vendor/bin"
+   ```
+   More likely you need to add this to `~/.bashrc` on Windows:
+   ```
+   set PATH="%AppData%/Composer/vendor/bin:$PATH"
+   ```
+3. Probably you have to close your terminal and open it again to make new
+   settings work.
+4. Check if phpcs is working: `phpcs -i`.
+5. Activate git hooks:
+   ```
+   cd path/to/project_root
+   sh .gitlab/_scripts/init-hooks.sh
+   ```
+
+### Useful Commands
 
 1. Execute symfony console command:
    ```
