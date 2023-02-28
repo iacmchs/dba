@@ -15,7 +15,8 @@ standard. In this project it is executed automatically on `git push`, but also
 can be executed manually.
 
 It's recommended to install phpcs globally to avoid duplication while working
-with multiple projects.
+with multiple projects. Or to use git commands from lando container as
+all necessary configuration is already done there.
 
 Note: in the example below we use `~/.config/composer/vendor/bin` path,
 if you have a different path then replace it with your value.
