@@ -74,7 +74,7 @@ class DdlQueryPartTest extends TestCase
                         ),
                     ]
                 ),
-                "CREATE TABLE test_table \n(\n     id uuid NOT NULL,\n     description character varying(500) DEFAULT NULL::character varying\n);"
+                "CREATE TABLE test_table \n(\n     id uuid NOT NULL, \n     description character varying(500) DEFAULT NULL::character varying\n);"
             ],
         ];
     }

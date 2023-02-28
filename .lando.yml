@@ -1,0 +1,25 @@
+name: dbanonymizer
+config:
+  composer_version: 2
+services:
+  appserver:
+    type: php:8.2
+    xdebug: true
+tooling:
+  console:
+    service: appserver
+    cmd: php /app/bin/console
+    description: 'Runs symfony console commands'
+  php:
+    service: appserver
+    cmd: php
+  test:
+    service: appserver
+    cmd: php /app/vendor/bin/phpunit
+    description: 'Run phpunit'
+  phpdebug:
+    service: appserver
+    cmd: php
+    env:
+      XDEBUG_TRIGGER: 1
+      PHP_IDE_CONFIG: "serverName=localhost"

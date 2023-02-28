@@ -3,12 +3,6 @@ driver: pgsql
 databases:
   # Create a partial dump of this DB.
   main:
-    credentials:
-      host: 1.2.3.4
-      port: 123
-      database: main
-      user: poirot
-      password: PaSs-0-WoRd
     # Any tables that are NOT mentioned here would be fully copied from the DB.
     tables:
       # Get 1.5% of rows (random) from this table.
@@ -27,12 +21,12 @@ databases:
           username:
             concat:
               - random_name
-              - @id
+              - '@id'
           last_name:
             concat:
               - random_item: ['Malfoy', 'Carolinus', 'Amon', 'Melf', 'Rune', 'Black', 'Walton', 'Everett', 'Morrow', 'Flagg']
               - '-'
-              - @id
+              - '@id'
           first_name:
             random_item: ['Frodo', 'Sam', 'Gandalf', 'Aragorn', 'Gimli', 'Legolas', 'Boromir', 'Gollum', 'Sauron', 'Galadriel']
           email: random_email

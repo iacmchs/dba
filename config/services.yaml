@@ -19,3 +19,7 @@ services:
     App\Service\DDL\ExtractorFactory:
         arguments:
             $extractors: !tagged_iterator app.dbStructureExtractor
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    Doctrine\DBAL\Tools\DsnParser:

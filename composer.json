@@ -8,6 +8,8 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-pdo": "*",
+        "doctrine/annotations": "^2.0",
+        "doctrine/dbal": "^3.6",
         "symfony/console": "6.2.*",
         "symfony/dotenv": "6.2.*",
         "symfony/flex": "^2",
