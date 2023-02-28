@@ -48,12 +48,12 @@ class PostgresDbStructureExtractor implements
      */
     public function extractTables(): array
     {
-        $tableStructures = [];
+        $tableStructure = [];
         foreach ($this->getTableList() as $table) {
-            $tableStructures[] = $this->getTableStructure($table);
+            $tableStructure[] = $this->getTableStructure($table);
         }
 
-        return $tableStructures;
+        return $tableStructure;
     }
 
     /**
