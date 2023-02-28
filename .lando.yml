@@ -1,0 +1,20 @@
+name: dbanonymizer
+recipe: lamp
+config:
+  webroot: public
+  composer_version: 2
+  php: 8.2
+  xdebug: true
+services:
+  database: disabled
+tooling:
+  console:
+    service: appserver
+    cmd: php /app/bin/console
+    description: 'Runs symfony console commands'
+  phpdebug:
+    service: appserver
+    cmd: php
+    env:
+      XDEBUG_TRIGGER: 1
+      PHP_IDE_CONFIG: "serverName=localhost"
