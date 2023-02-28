@@ -49,7 +49,7 @@ class PostgresDbStructureExtractor implements
     public function extractTables(): array
     {
         $tableStructures = [];
-        foreach ($this->getTablesList() as $table) {
+        foreach ($this->getTableList() as $table) {
             $tableStructures[] = $this->getTableStructure($table);
         }
 
@@ -88,7 +88,7 @@ class PostgresDbStructureExtractor implements
      * @return string[]
      * @throws ConnectionNotInjected
      */
-    private function getTablesList(): array
+    private function getTableList(): array
     {
         $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'";
         $stmt = $this->getConnection()->prepare($sql);
