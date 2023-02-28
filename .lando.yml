@@ -1,17 +1,18 @@
 name: dbanonymizer
-recipe: lamp
 config:
-  webroot: public
   composer_version: 2
-  php: 8.2
-  xdebug: true
 services:
-  database: disabled
+  appserver:
+    type: php:8.2
+    xdebug: true
 tooling:
   console:
     service: appserver
     cmd: php /app/bin/console
     description: 'Runs symfony console commands'
+  php:
+    service: appserver
+    cmd: php
   phpdebug:
     service: appserver
     cmd: php
