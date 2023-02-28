@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<ruleset name="PHPCS Symfony ruleset">
+  <description>PHP CodeSniffer configuration.</description>
+  <rule ref="Symfony">
+    <exclude name="Symfony.Commenting.License"/>
+  </rule>
+</ruleset>
