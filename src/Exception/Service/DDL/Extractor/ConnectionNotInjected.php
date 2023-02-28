@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Implementation of an exception that should be thrown if a db connect is not injected into the class.
+ * @file
+ * Implementation of an exception that should be thrown if a db connect is not injected into the class.
  */
 
 declare(strict_types=1);

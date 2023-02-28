@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Test that checks how the structures implementing the DdlQueryPartInterface are transformed.
+ * @file
+ * Test that checks how the structures implementing the DdlQueryPartInterface are transformed.
  */
 
 declare(strict_types=1);

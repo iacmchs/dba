@@ -1,6 +1,7 @@
 <?php
 /**
- * @file The entry point to db anonymizer command.
+ * @file
+ * The entry point to db anonymizer command.
  */
 
 declare(strict_types=1);

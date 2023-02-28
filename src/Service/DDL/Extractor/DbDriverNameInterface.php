@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Interface guarantees that class implementing it will return a name of a db driver.
+ * @file
+ * Interface guarantees that class implementing it will return a name of a db driver.
  */
 
 declare(strict_types=1);

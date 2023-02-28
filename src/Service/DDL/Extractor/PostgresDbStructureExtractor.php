@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Implementation of the DbStructureExtractorInterface for a Postgresql.
+ * @file
+ * Implementation of the DbStructureExtractorInterface for a Postgresql.
  */
 
 declare(strict_types=1);

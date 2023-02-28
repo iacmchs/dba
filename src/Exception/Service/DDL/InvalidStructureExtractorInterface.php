@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Implementation of an exception that should be thrown if a instance of extractor doesn't implement a necessary
+ * @file
+ * Implementation of an exception that should be thrown if a instance of extractor doesn't implement a necessary
  * interface.
  */
 

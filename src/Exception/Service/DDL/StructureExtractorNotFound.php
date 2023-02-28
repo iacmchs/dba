@@ -1,8 +1,9 @@
 <?php
 
 /**
- * @file Implementation of an exception that should be thrown if a  there is an attempt to get extractor for
- * non-implemented db driver.
+ * @file
+ * Implementation of an exception that should be thrown if a  there is an attempt to get extractor for non-implemented
+ * db driver.
  */
 
 declare(strict_types=1);

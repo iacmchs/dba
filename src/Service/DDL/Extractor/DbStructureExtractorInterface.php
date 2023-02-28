@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Interface describe an db structure extractor.
+ * @file
+ * Interface describe an db structure extractor.
  */
 
 declare(strict_types=1);

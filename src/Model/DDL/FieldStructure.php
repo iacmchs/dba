@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file An implementation of a table's field structure.
+ * @file
+ * An implementation of a table's field structure.
  */
 
 declare(strict_types=1);

@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file An implementation of a table structure.
+ * @file
+ * An implementation of a table structure.
  */
 
 declare(strict_types=1);
