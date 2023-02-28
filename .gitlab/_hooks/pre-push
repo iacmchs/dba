@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 
 echo "Executing .git/hooks/pre-push..."
-git diff --diff-filter=d  origin/$(git rev-parse --abbrev-ref HEAD) --name-only -- '*.php' | xargs -r phpcs --standard=phpcs.xml --colors
+git diff --diff-filter=d  origin/$(git rev-parse --abbrev-ref HEAD) --name-only -- '*.php' | xargs -r phpcs --standard=phpcs.xml --colors \
+    && php ./bin/console lint:yaml config
 
 # Return the status of the last run command.
 exit $?
