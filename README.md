@@ -18,3 +18,11 @@ it would create necessary containers for you.
    ```
    lando phpdebug public/index.php
    ```
+3. Run tests:
+    ```
+    lando test 
+    ```
+4. Run psalm:
+   ```
+   lando psalm
+   ```

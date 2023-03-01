@@ -4,16 +4,19 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-pdo": "*",
         "doctrine/annotations": "^2.0",
         "doctrine/dbal": "^3.6",
         "symfony/console": "6.2.*",
         "symfony/dotenv": "6.2.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "6.2.*",
+        "symfony/property-access": "6.2.*",
         "symfony/runtime": "6.2.*",
+        "symfony/serializer": "6.2.*",
         "symfony/yaml": "6.2.*"
     },
     "config": {
@@ -44,6 +47,8 @@
         "symfony/polyfill-php81": "*"
     },
     "scripts": {
+        "psalm": "psalm --config=psalm.xml",
+        "test": "phpunit --colors=always",
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"

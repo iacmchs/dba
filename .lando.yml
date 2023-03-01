@@ -13,6 +13,16 @@ tooling:
   php:
     service: appserver
     cmd: php
+  composer:
+    service: appserver
+  test:
+    service: appserver
+    cmd: composer test
+    description: 'Run phpunit'
+  psalm:
+    service: appserver
+    cmd: composer psalm
+    description: 'Run phpunit'
   phpdebug:
     service: appserver
     cmd: php
