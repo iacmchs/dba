@@ -1,0 +1,19 @@
+#!/usr/bin/env php
+<?php
+// BEGIN Settings.
+$projectPrefix = 'DBA';
+// END Settings.
+
+echo "Validating commit message syntax...\n";
+
+$message = rtrim(file_get_contents($argv[1]), "\n");
+$pattern = "/(^{$projectPrefix}-[0-9]+(: )[^ ].{15,}$(?<!\.))|(Merge branch (.)+)/";
+$example = "{$projectPrefix}-123: Update command configuration";
+
+if (!preg_match($pattern, $message)) {
+  echo "Error: commit message must conform to the regex $pattern\n";
+  echo "Example - $example\n";
+  exit(1);
+}
+
+exit(0);
