@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\DsnNotValidException;
 use App\Exception\Service\DDL\InvalidStructureExtractorInterface;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
 use App\Infrastructure\DBConnector;
@@ -47,11 +48,14 @@ class ExportDbCommand extends Command
     /**
      * Run the app:db-export command.
      *
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
+     *
      * @return int
      * @throws InvalidStructureExtractorInterface
      * @throws StructureExtractorNotFound
+     * @throws DsnNotValidException
+     * @throws Exception
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
