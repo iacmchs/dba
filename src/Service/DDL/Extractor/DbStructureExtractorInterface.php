@@ -28,4 +28,11 @@ interface DbStructureExtractorInterface
      * @return TableStructure
      */
     public function extractTable(string $name): TableStructure;
+
+    /**
+     * Dump database to folder
+     *
+     * @return void
+     */
+    public function dumpDatabase(): void;
 }

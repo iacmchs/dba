@@ -36,10 +36,14 @@ class PostgresDbStructureExtractor implements
     /**
      * Create db structure extractor for Postgresql.
      *
+     * @param string                $databaseDumpFolder
      * @param DenormalizerInterface $denormalizer
+     * @param Filesystem            $filesystem
      */
     public function __construct(
-        private readonly DenormalizerInterface $denormalizer
+        private readonly string $databaseDumpFolder,
+        private readonly DenormalizerInterface $denormalizer,
+        private readonly Filesystem $filesystem
     )
     {
     }
@@ -185,5 +189,37 @@ class PostgresDbStructureExtractor implements
         }
 
         return $this->conn;
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * @return void
+     *
+     * @throws ConnectionNotInjected
+     * @throws Exception
+     */
+    public function dumpDatabase(): void
+    {
+        $database = $this->getConnection()->getDatabase();
+        $params = $this->getConnection()->getParams();
+        $command = [
+            'pg_dump',
+            $database,
+            '-U ' . $params['user'],
+            '-h ' . $params['host'],
+            '-p ' . $params['port'],
+            '-s',
+        ];
+
+        $folderName = $database . '_' . time();
+        $generateFile = $database . '_structure' . '.sql';
+
+        $this->filesystem->mkdir($this->databaseDumpFolder . '/' . $folderName);
+
+        $commandLine = implode(' ', $command);
+        $commandLine .= ' > ' . $this->databaseDumpFolder . '/' . $folderName. '/' . $generateFile;
+
+        Process::fromShellCommandline($commandLine)->run();
     }
 }

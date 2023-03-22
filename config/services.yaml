@@ -1,5 +1,5 @@
 parameters:
-
+    database_dump_folder: '%env(DATABASE_DUMP_FOLDER)%'
 services:
     _defaults:
         autowire: true
@@ -8,6 +8,9 @@ services:
     _instanceof:
         App\Service\DDL\Extractor\DbDriverNameInterface:
             tags: [ 'app.dbStructureExtractor' ]
+        App\Service\DDL\Extractor\DbStructureExtractorInterface:
+            bind:
+                $databaseDumpFolder: '%database_dump_folder%'
 
     App\:
         resource: '../src/'
