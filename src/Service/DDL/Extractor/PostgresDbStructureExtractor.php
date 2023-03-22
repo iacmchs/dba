@@ -14,7 +14,9 @@ use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
 use App\Service\DbConnectionSetterInterface;
-use PDO;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
+use Doctrine\DBAL\Exception;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
