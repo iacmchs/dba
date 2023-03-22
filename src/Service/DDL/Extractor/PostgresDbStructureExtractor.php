@@ -26,9 +26,9 @@ class PostgresDbStructureExtractor implements
     /**
      * DB connection.
      *
-     * @var PDO|null
+     * @var Connection|null
      */
-    private ?PDO $conn = null;
+    private ?Connection $conn = null;
 
     /**
      * Create db structure extractor for Postgresql.
@@ -69,15 +69,15 @@ class PostgresDbStructureExtractor implements
     /**
      * @inheritDoc
      */
-    public function getDbDriverName(): string
+    public function getDbDriver(): string
     {
-        return 'pgsql';
+        return Driver::class;
     }
 
     /**
      * @inheritDoc
      */
-    public function setDbConnection(PDO $connection): void
+    public function setDbConnection(Connection $connection): void
     {
         $this->conn = $connection;
     }
@@ -87,16 +87,16 @@ class PostgresDbStructureExtractor implements
      *
      * @return string[]
      * @throws ConnectionNotInjected
+     * @throws Exception
      */
     private function getTableList(): array
     {
-        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute();
+        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema= ?";
+        $dataTables = $this->getConnection()->fetchAllAssociative($sql, ['public']);
 
         $tables = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $tables[] = $row['table_name'];
+        foreach ($dataTables as $tableName) {
+            $tables[] = $tableName['table_name'];
         }
 
         /** @psalm-var string[] */
@@ -120,6 +120,8 @@ class PostgresDbStructureExtractor implements
      * @return DdlQueryPartInterface[]
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
+     * @throws Exception
+     * @throws ExceptionInterface
      */
     private function getTableFieldsStructure(string $tableName): array
     {
@@ -134,11 +136,10 @@ class PostgresDbStructureExtractor implements
                 WHERE
                     table_name = :table_name";
 
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute(['table_name' => $tableName]);
+        $stmt = $this->getConnection()->fetchAllAssociative($sql, ['table_name' => $tableName]);
 
         $fields = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        foreach ($stmt as $row) {
             $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
         }
 
@@ -150,7 +151,7 @@ class PostgresDbStructureExtractor implements
      *
      * @throws ConnectionNotInjected
      */
-    private function getConnection(): PDO
+    private function getConnection(): Connection
     {
         if ($this->conn === null) {
             throw ConnectionNotInjected::create();

@@ -11,15 +11,16 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use PDO;
+use Doctrine\DBAL\Connection;
 
 interface DbConnectionSetterInterface
 {
     /**
      * Inject a db connection inside a object.
      *
-     * @param PDO $connection
+     * @param Connection $connection
+     *
      * @return void
      */
-    public function setDbConnection(PDO $connection): void;
+    public function setDbConnection(Connection $connection): void;
 }

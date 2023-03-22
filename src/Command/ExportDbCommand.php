@@ -10,8 +10,9 @@ namespace App\Command;
 
 use App\Exception\Service\DDL\InvalidStructureExtractorInterface;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
+use App\Infrastructure\DBConnector;
 use App\Service\DDL\ExtractorFactory;
-use PDO;
+use Doctrine\DBAL\Exception;
 use PDOException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -74,8 +75,8 @@ class ExportDbCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         try {
-            $pdo = new PDO($dsn, $username, $password);
-            $this->extractorFactory->createExtractor($pdo)->extractTables();
+            $connector = $this->connector->create($dsn);
+            $this->extractorFactory->createExtractor($connector)->extractTables();
         } catch (PDOException $e) {
             $io->error("Connection failed: " . $e->getMessage());
             return Command::FAILURE;

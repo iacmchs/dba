@@ -16,5 +16,5 @@ interface DbDriverNameInterface
      *
      * @return string
      */
-    public function getDbDriverName(): string;
+    public function getDbDriver(): string;
 }

@@ -41,27 +41,26 @@ class ExtractorFactory
             }
 
             /** @psalm-suppress InvalidPropertyAssignmentValue,UndefinedInterfaceMethod */
-            $this->extractors[$extractor->getDbDriverName()] = $extractor;
+            $this->extractors[$extractor->getDbDriver()] = $extractor;
         }
     }
 
     /**
      * Create db structure extractor based on db connection.
      *
-     * @param PDO $connection
+     * @param Connection $connection
+     *
      * @return DbStructureExtractorInterface
-     * @throws StructureExtractorNotFound
      * @throws InvalidStructureExtractorInterface
+     * @throws StructureExtractorNotFound
      */
-    public function createExtractor(PDO $connection): DbStructureExtractorInterface
+    public function createExtractor(Connection $connection): DbStructureExtractorInterface
     {
-        /** @var string $driverName */
-        $driverName = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
-        if (!isset($this->extractors[$driverName])) {
-            throw StructureExtractorNotFound::byDBDriverName($driverName);
+        if (!isset($this->extractors[$connection->getDriver()::class])) {
+            throw StructureExtractorNotFound::byDBDriverName($connection->getDriver()::class);
         }
 
-        $extractor = $this->extractors[$driverName];
+        $extractor = $this->extractors[$connection->getDriver()::class];
         if (!$extractor instanceof DbConnectionSetterInterface) {
             throw InvalidStructureExtractorInterface::byInterface(DbConnectionSetterInterface::class);
         }
