@@ -15,7 +15,7 @@ use App\Exception\Service\DDL\InvalidStructureExtractorInterface;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
 use App\Service\DbConnectionSetterInterface;
 use App\Service\DDL\Extractor\DbStructureExtractorInterface;
-use PDO;
+use Doctrine\DBAL\Connection;
 use Traversable;
 
 class ExtractorFactory
