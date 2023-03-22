@@ -49,10 +49,8 @@ class ExportDbCommand extends Command
             ->addArgument(
                 'dsn',
                 InputArgument::REQUIRED,
-                'dsn should match the pattern: "driver:host=your_host;dbname=your_dbname;port=your_port"'
-            )
-            ->addArgument('username', InputArgument::REQUIRED, 'DB user name')
-            ->addArgument('password', InputArgument::REQUIRED, 'DB password');
+                'dsn should match the pattern: "driver://user:password@host:port/database"'
+            );
     }
 
     /**
@@ -69,8 +67,6 @@ class ExportDbCommand extends Command
         // @todo Uncompleted method. Should be improved and finished.
 
         $dsn = $input->getArgument('dsn');
-        $username = $input->getArgument('username');
-        $password = $input->getArgument('password');
 
         $io = new SymfonyStyle($input, $output);
 
