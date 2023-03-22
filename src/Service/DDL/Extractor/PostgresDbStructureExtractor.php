@@ -12,6 +12,7 @@ namespace App\Service\DDL\Extractor;
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
 use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
+use App\Model\DDL\IndexStructure;
 use App\Model\DDL\TableStructure;
 use App\Service\DbConnectionSetterInterface;
 use Doctrine\DBAL\Connection;
