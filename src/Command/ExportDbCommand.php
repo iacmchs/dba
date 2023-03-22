@@ -24,18 +24,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 #[AsCommand(name: 'app:db-export')]
 class ExportDbCommand extends Command
 {
-    /**
-     * @var ExtractorFactory
-     */
-    private ExtractorFactory $extractorFactory;
-
-    /**
-     * @param ExtractorFactory $extractorFactory
-     */
-    public function __construct(ExtractorFactory $extractorFactory)
+    public function __construct(private readonly ExtractorFactory $extractorFactory, private readonly DBConnector $connector)
     {
         parent::__construct();
-        $this->extractorFactory = $extractorFactory;
     }
 
     /**
