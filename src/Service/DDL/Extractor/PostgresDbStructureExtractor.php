@@ -115,6 +115,30 @@ class PostgresDbStructureExtractor implements
     }
 
     /**
+     * @param string $tableName
+     *
+     * @return array<IndexStructure>
+     * @throws ConnectionNotInjected
+     * @throws Exception
+     * @throws ExceptionInterface
+     */
+    private function getTableIndexes(string $tableName): array
+    {
+        $sql = "
+            SELECT tablename, indexname, indexdef
+            FROM pg_indexes
+            WHERE tablename = :table_name";
+        $data = $this->getConnection()->fetchAllAssociative($sql, ['table_name' => $tableName]);
+
+        $indexes = [];
+        foreach ($data as $row) {
+            $indexes = $this->denormalizer->denormalize($row, IndexStructure::class, 'array');
+        }
+
+        return $indexes;
+    }
+
+    /**
      * Extract and return table fields structures.
      *
      * @return DdlQueryPartInterface[]
