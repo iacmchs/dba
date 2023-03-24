@@ -67,7 +67,7 @@ class ExportDbCommand extends Command
 
         try {
             $connector = $this->connector->create($dsn);
-            $this->extractorFactory->createExtractor($connector)->extractTables();
+            $this->extractorFactory->createExtractor($connector)->dumpDatabase();
         } catch (PDOException $e) {
             $io->error("Connection failed: " . $e->getMessage());
             return Command::FAILURE;
