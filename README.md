@@ -3,6 +3,22 @@
 This tool can grab a full/partial copy of some database and anonymize personal
 or other sensitive data.
 
+## How to Use
+
+### Commands
+```
+Description:
+  Dump DB structure to folder <DATABASE_DUMP_FOLDER>/<database-name_Ymd_His>/00_<database-name>_structure.sql SQL file. 
+  DATABASE_DUMP_FOLDER is exposed in ENV file.
+
+Usage:
+  app:db-export <dsn>
+
+Arguments:
+  dsn                   dsn should match the pattern: "driver://user:password@host:port/database"
+```
+
+
 ## Local development
 
 We use [lando](https://lando.dev/) for development. Just run `lando start` and
@@ -60,17 +76,3 @@ if you have a different path then replace it with your value.
    ```
    lando psalm
    ```
-
-## How to Use
-### Commands
-```
-Description:
-  Dump DB structure to folder <DATABASE_DUMP_FOLDER>/<database-name_Ymd_His>/00_<database-name>_structure.sql SQL file. 
-  DATABASE_DUMP_FOLDER is exposed in ENV file.
-
-Usage:
-  app:db-export <dsn>
-
-Arguments:
-  dsn                   dsn should match the pattern: "driver://user:password@host:port/database"
-```
