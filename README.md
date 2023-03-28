@@ -5,19 +5,25 @@ or other sensitive data.
 
 ## How to Use
 
+1. Copy .env to .env.local
+2. Change these values to your own:  
+   PG_DUMP - path to **pg_dump**. Example, PG_DUMP=/etc/pg_dump  
+   DATABASE_DUMP_FOLDER - local dump storage. Example, DATABASE_DUMP_FOLDER=/var/database-dumps  
+
 ### Commands
-```
-Description:
-  Dump DB structure to folder <DATABASE_DUMP_FOLDER>/<database-name_Ymd_His>/00_<database-name>_structure.sql SQL file. 
-  DATABASE_DUMP_FOLDER is exposed in ENV file.
+
+#### app:db-export <dsn>
+
+Create DB dump. See DATABASE_DUMP_FOLDER in ENV file.
 
 Usage:
-  app:db-export <dsn>
-
-Arguments:
-  dsn                   dsn should match the pattern: "driver://user:password@host:port/database"
+```
+php bin/console app:db-export <dsn>
 ```
 
+Arguments:
+- dsn - the DB credentials. Should match the pattern:
+  "driver://user:password@host:port/database"
 
 ## Local development
 
