@@ -188,29 +188,29 @@ class PostgresDbStructureExtractor implements
             '-s',
         ];
 
-        $folderName = $this->createStructureFolderName($database);
-        $generateFile = $this->createStructureFileName($database);
+        $folderName = $this->getNewStructureFolderName($database);
+        $generateFile = $this->getNewStructureFileName($database);
         $folderPath = $this->getStructureFolderPath($folderName);
 
         $commandLine = implode(' ', $command);
         $commandLine .= ' > ' . $folderPath. '/' . $generateFile;
 
-        $this->createStructureFolder($folderPath);
+        $this->getNewStructureFolder($folderPath);
 
         Process::fromShellCommandline($commandLine)->run();
     }
 
-    private function createStructureFolder(string $path): void
+    private function getNewStructureFolder(string $path): void
     {
         $this->filesystem->mkdir($path);
     }
 
-    private function createStructureFolderName(string $name): string
+    private function getNewStructureFolderName(string $name): string
     {
         return $name . '_' . date('Ymd_His');
     }
 
-    private function createStructureFileName(string $name): string
+    private function getNewStructureFileName(string $name): string
     {
         return '00_' . $name . '_structure' . '.sql';
     }
