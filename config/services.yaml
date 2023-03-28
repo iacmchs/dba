@@ -1,5 +1,6 @@
 parameters:
     database_dump_folder: '%env(DATABASE_DUMP_FOLDER)%'
+    pg_dump: '%env(PG_DUMP)%'
 services:
     _defaults:
         autowire: true
@@ -11,6 +12,7 @@ services:
         App\Service\DDL\Extractor\DbStructureExtractorInterface:
             bind:
                 $databaseDumpFolder: '%database_dump_folder%'
+                $pgDump: '%pg_dump%'
 
     App\:
         resource: '../src/'

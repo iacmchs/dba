@@ -38,9 +38,10 @@ class PostgresDbStructureExtractor implements
     /**
      * Create db structure extractor for Postgresql.
      *
-     * @param string                $databaseDumpFolder
+     * @param string $databaseDumpFolder
+     * @param string $pgDump
      * @param DenormalizerInterface $denormalizer
-     * @param Filesystem            $filesystem
+     * @param Filesystem $filesystem
      */
     public function __construct(
         private readonly string $databaseDumpFolder,
@@ -206,7 +207,7 @@ class PostgresDbStructureExtractor implements
         $database = $this->getConnection()->getDatabase();
         $params = $this->getConnection()->getParams();
         $command = [
-            'pg_dump',
+            $this->pgDump,
             $database,
             '-U ' . $params['user'],
             '-h ' . $params['host'],
