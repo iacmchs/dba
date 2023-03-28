@@ -195,12 +195,12 @@ class PostgresDbStructureExtractor implements
         $commandLine = implode(' ', $command);
         $commandLine .= ' > ' . $folderPath. '/' . $generateFile;
 
-        $this->getNewStructureFolder($folderPath);
+        $this->createStructureFolder($folderPath);
 
         Process::fromShellCommandline($commandLine)->run();
     }
 
-    private function getNewStructureFolder(string $path): void
+    private function createStructureFolder(string $path): void
     {
         $this->filesystem->mkdir($path);
     }
