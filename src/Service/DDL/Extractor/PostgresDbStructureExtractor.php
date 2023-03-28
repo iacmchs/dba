@@ -216,9 +216,10 @@ class PostgresDbStructureExtractor implements
         $generateFile = '00_' . $database . '_structure' . '.sql';
 
         $this->filesystem->mkdir($this->databaseDumpFolder . '/' . $folderName);
+        $folderPath = $this->databaseDumpFolder . '/' . $folderName;
 
         $commandLine = implode(' ', $command);
-        $commandLine .= ' > ' . $this->databaseDumpFolder . '/' . $folderName. '/' . $generateFile;
+        $commandLine .= ' > ' . $folderPath. '/' . $generateFile;
 
         Process::fromShellCommandline($commandLine)->run();
     }
