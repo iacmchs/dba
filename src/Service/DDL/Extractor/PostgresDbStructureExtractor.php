@@ -212,7 +212,7 @@ class PostgresDbStructureExtractor implements
             '-s',
         ];
 
-        $folderName = $database . '_' . time();
+        $folderName = $database . '_' . date('Ymd_His');
         $generateFile = $database . '_structure' . '.sql';
 
         $this->filesystem->mkdir($this->databaseDumpFolder . '/' . $folderName);
