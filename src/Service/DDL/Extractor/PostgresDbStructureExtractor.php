@@ -103,11 +103,10 @@ class PostgresDbStructureExtractor implements
     private function getTableList(): array
     {
         $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema= ?";
-        $dataTables = $this->getConnection()->fetchAllAssociative($sql, ['public']);
 
         $tables = [];
-        foreach ($dataTables as $tableName) {
-            $tables[] = $tableName['table_name'];
+        foreach ($this->getConnection()->iterateAssociative($sql, ['public']) as $row) {
+            $tables[] = $row['table_name'];
         }
 
         /** @psalm-var string[] */
@@ -139,10 +138,9 @@ class PostgresDbStructureExtractor implements
             SELECT tablename, indexname, indexdef
             FROM pg_indexes
             WHERE tablename = :table_name";
-        $data = $this->getConnection()->fetchAllAssociative($sql, ['table_name' => $tableName]);
 
         $indexes = [];
-        foreach ($data as $row) {
+        foreach ($this->getConnection()->iterateAssociative($sql, ['table_name' => $tableName]) as $row) {
             $indexes = $this->denormalizer->denormalize($row, IndexStructure::class, 'array');
         }
 
@@ -171,11 +169,9 @@ class PostgresDbStructureExtractor implements
                 WHERE
                     table_name = :table_name";
 
-        $stmt = $this->getConnection()->fetchAllAssociative($sql, ['table_name' => $tableName]);
-
         $fields = [];
-        foreach ($stmt as $row) {
-            $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
+        foreach ($this->getConnection()->iterateAssociative($sql, ['table_name' => $tableName]) as $row) {
+            $fields = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
         }
 
         return $fields;
