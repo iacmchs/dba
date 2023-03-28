@@ -22,7 +22,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'app:db-export')]
+#[AsCommand(
+    name: 'app:db-export',
+    description: 'Dump DB structure to folder <DATABASE_DUMP_FOLDER>/<database-name_Ymd_His>/00_<database-name>_structure.sql SQL file. DATABASE_DUMP_FOLDER is exposed in ENV file.'
+)]
 class ExportDbCommand extends Command
 {
     public function __construct(private readonly ExtractorFactory $extractorFactory, private readonly DBConnector $connector)
