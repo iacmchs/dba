@@ -57,7 +57,7 @@ class ExtractorFactory
     public function createExtractor(Connection $connection): DbStructureExtractorInterface
     {
         if (!isset($this->extractors[$connection->getDriver()::class])) {
-            throw StructureExtractorNotFound::byDBDriverName($connection->getDriver()::class);
+            throw StructureExtractorNotFound::byDbDriverName($connection->getDriver()::class);
         }
 
         $extractor = $this->extractors[$connection->getDriver()::class];
