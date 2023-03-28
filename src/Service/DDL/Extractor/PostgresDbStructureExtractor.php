@@ -147,7 +147,7 @@ class PostgresDbStructureExtractor implements
 
         $fields = [];
         foreach ($this->getConnection()->iterateAssociative($sql, ['table_name' => $tableName]) as $row) {
-            $fields = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
+            $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
         }
 
         return $fields;
