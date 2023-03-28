@@ -12,7 +12,6 @@ namespace App\Service\DDL\Extractor;
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
 use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
-use App\Model\DDL\IndexStructure;
 use App\Model\DDL\TableStructure;
 use App\Service\DbConnectionSetterInterface;
 use Doctrine\DBAL\Connection;
@@ -122,29 +121,6 @@ class PostgresDbStructureExtractor implements
     private function getTableStructure(string $tableName): TableStructure
     {
         return new TableStructure($tableName, $this->getTableFieldsStructure($tableName));
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return array<IndexStructure>
-     * @throws ConnectionNotInjected
-     * @throws Exception
-     * @throws ExceptionInterface
-     */
-    private function getTableIndexes(string $tableName): array
-    {
-        $sql = "
-            SELECT tablename, indexname, indexdef
-            FROM pg_indexes
-            WHERE tablename = :table_name";
-
-        $indexes = [];
-        foreach ($this->getConnection()->iterateAssociative($sql, ['table_name' => $tableName]) as $row) {
-            $indexes = $this->denormalizer->denormalize($row, IndexStructure::class, 'array');
-        }
-
-        return $indexes;
     }
 
     /**
