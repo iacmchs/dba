@@ -34,5 +34,5 @@ interface DbStructureExtractorInterface
      *
      * @return void
      */
-    public function dumpDatabase(): void;
+    public function dumpStructure(): void;
 }
