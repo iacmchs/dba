@@ -30,7 +30,7 @@ interface DbStructureExtractorInterface
     public function extractTable(string $name): TableStructure;
 
     /**
-     * Dump database to folder
+     * Dump database to folder.
      *
      * @return void
      */
