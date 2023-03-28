@@ -5,10 +5,10 @@ or other sensitive data.
 
 ## How to Use
 
-1. Copy .env to .env.local
+1. Create copy of ```.env``` and name it  ```.env.local```.
 2. Change these values to your own:  
-   PG_DUMP - path to **pg_dump**. Example, PG_DUMP=/etc/pg_dump  
-   DATABASE_DUMP_FOLDER - local dump storage. Example, DATABASE_DUMP_FOLDER=/var/database-dumps  
+   ```PG_DUMP``` - path to **pg_dump**. Example, ```PG_DUMP=/etc/pg_dump```.  
+   ```DATABASE_DUMP_FOLDER``` - local dump storage. Example, ```DATABASE_DUMP_FOLDER=/var/database-dumps```.   
 
 ### Commands
 
@@ -23,7 +23,7 @@ php bin/console app:db-export <dsn>
 
 Arguments:
 - dsn - the DB credentials. Should match the pattern:
-  "driver://user:password@host:port/database"
+  "driver://user:password@host:port/database".
 
 ## Local development
 
