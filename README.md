@@ -5,7 +5,7 @@ or other sensitive data.
 
 ## How to Use
 
-1. Create a copy of `.env` - `.env.local`.
+1. Create a copy of `.env` file - `.env.local`.
 2. Change these values if needed:  
    - `PG_DUMP` - path to **pg_dump**. Example: `PG_DUMP=/etc/pg_dump`.  
    - `DATABASE_DUMP_FOLDER` - folder to save db dumps to. Example: `DATABASE_DUMP_FOLDER=/var/database-dumps`.  
