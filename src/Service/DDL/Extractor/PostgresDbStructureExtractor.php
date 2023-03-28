@@ -212,7 +212,7 @@ class PostgresDbStructureExtractor implements
 
     private function getNewStructureFileName(string $name): string
     {
-        return '00_' . $name . '_structure' . '.sql';
+        return '00_' . $name . '_structure.sql';
     }
 
     private function getStructureFolderPath(string $folderName): string
