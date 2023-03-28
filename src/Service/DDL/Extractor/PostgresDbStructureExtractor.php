@@ -202,7 +202,7 @@ class PostgresDbStructureExtractor implements
      * @throws ConnectionNotInjected
      * @throws Exception
      */
-    public function dumpDatabase(): void
+    public function dumpStructure(): void
     {
         $database = $this->getConnection()->getDatabase();
         $params = $this->getConnection()->getParams();
