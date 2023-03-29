@@ -28,6 +28,7 @@ class ExtractorFactory
      * Create an extractor factory instance.
      *
      * @param Traversable $extractors
+     *
      * @throws InvalidStructureExtractorInterface
      */
     public function __construct(Traversable $extractors)
