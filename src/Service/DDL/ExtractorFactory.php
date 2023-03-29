@@ -48,6 +48,7 @@ class ExtractorFactory
      * @param Connection $connection
      *
      * @return DbStructureExtractorInterface
+     *
      * @throws InvalidStructureExtractorInterface
      * @throws StructureExtractorNotFound
      */
