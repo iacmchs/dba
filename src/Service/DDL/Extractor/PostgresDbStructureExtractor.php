@@ -108,7 +108,6 @@ class PostgresDbStructureExtractor implements
             $tables[] = $row['table_name'];
         }
 
-        /** @psalm-var string[] */
         return $tables;
     }
 

@@ -41,10 +41,6 @@ tooling:
     service: appserver
     cmd: composer test
     description: 'Run phpunit'
-  psalm:
-    service: appserver
-    cmd: composer psalm
-    description: 'Run phpunit'
   phpdebug:
     service: appserver
     cmd: php

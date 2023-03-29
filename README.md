@@ -78,7 +78,3 @@ if you have a different path then replace it with your value.
     ```
     lando test 
     ```
-4. Run psalm:
-   ```
-   lando psalm
-   ```

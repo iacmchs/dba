@@ -40,7 +40,6 @@ class ExtractorFactory
                 throw InvalidStructureExtractorInterface::byInterface(DbStructureExtractorInterface::class);
             }
 
-            /** @psalm-suppress InvalidPropertyAssignmentValue,UndefinedInterfaceMethod */
             $this->extractors[$extractor->getDbDriver()] = $extractor;
         }
     }
