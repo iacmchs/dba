@@ -158,6 +158,8 @@ class PostgresDbStructureExtractor implements
     /**
      * Extract and return table fields structures.
      *
+     * @param string $tableName
+     *
      * @return DdlQueryPartInterface[]
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
