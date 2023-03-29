@@ -46,6 +46,7 @@ class PostgresDbStructureExtractor implements
 
     /**
      * @inheritDoc
+     *
      * @throws ConnectionNotInjected
      * @throws ExceptionInterface
      */
