@@ -205,6 +205,13 @@ class PostgresDbStructureExtractor implements
         return $name . '_' . date('Ymd_His');
     }
 
+    /**
+     * Get new structure file name.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
     private function getNewStructureFileName(string $name): string
     {
         return '00_' . $name . '_structure.sql';
