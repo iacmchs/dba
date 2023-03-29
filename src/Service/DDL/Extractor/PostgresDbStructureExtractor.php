@@ -200,6 +200,13 @@ class PostgresDbStructureExtractor implements
         $this->filesystem->mkdir($path);
     }
 
+    /**
+     * Get new structure folder name.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
     private function getNewStructureFolderName(string $name): string
     {
         return $name . '_' . date('Ymd_His');
