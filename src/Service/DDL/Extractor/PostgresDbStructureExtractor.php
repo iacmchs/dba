@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Implementation of the DbStructureExtractorInterface for a Postgresql.
- */
-
 declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
@@ -22,6 +17,9 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
+/**
+ * Implementation of the DbStructureExtractorInterface for a PostgresQL.
+ */
 class PostgresDbStructureExtractor implements
     DbStructureExtractorInterface,
     DbDriverNameInterface,
