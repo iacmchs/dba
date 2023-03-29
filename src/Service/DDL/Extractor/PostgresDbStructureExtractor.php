@@ -210,6 +210,13 @@ class PostgresDbStructureExtractor implements
         return '00_' . $name . '_structure.sql';
     }
 
+    /**
+     * Get structure folder path.
+     *
+     * @param string $folderName
+     *
+     * @return string
+     */
     private function getStructureFolderPath(string $folderName): string
     {
         return $this->databaseDumpFolder . '/' . $folderName;
