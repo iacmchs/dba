@@ -161,7 +161,7 @@ class PostgresDbStructureExtractor implements
      * @param string $tableName
      *
      * @return DdlQueryPartInterface[]
-     * @throws ExceptionInterface
+     *
      * @throws ConnectionNotInjected
      * @throws Exception
      * @throws ExceptionInterface
