@@ -14,7 +14,11 @@ use App\Model\DDL\DdlQueryPartInterface;
 use App\Model\DDL\FieldStructure;
 use App\Model\DDL\TableStructure;
 use App\Service\DbConnectionSetterInterface;
-use PDO;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
+use Doctrine\DBAL\Exception;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
@@ -26,17 +30,23 @@ class PostgresDbStructureExtractor implements
     /**
      * DB connection.
      *
-     * @var PDO|null
+     * @var Connection|null
      */
-    private ?PDO $conn = null;
+    private ?Connection $conn = null;
 
     /**
      * Create db structure extractor for Postgresql.
      *
+     * @param string $databaseDumpFolder
+     * @param string $pgDump
      * @param DenormalizerInterface $denormalizer
+     * @param Filesystem $filesystem
      */
     public function __construct(
-        private readonly DenormalizerInterface $denormalizer
+        private readonly string $databaseDumpFolder,
+        private readonly string $pgDump,
+        private readonly DenormalizerInterface $denormalizer,
+        private readonly Filesystem $filesystem
     )
     {
     }
@@ -69,15 +79,15 @@ class PostgresDbStructureExtractor implements
     /**
      * @inheritDoc
      */
-    public function getDbDriverName(): string
+    public function getDbDriver(): string
     {
-        return 'pgsql';
+        return Driver::class;
     }
 
     /**
      * @inheritDoc
      */
-    public function setDbConnection(PDO $connection): void
+    public function setDbConnection(Connection $connection): void
     {
         $this->conn = $connection;
     }
@@ -87,15 +97,14 @@ class PostgresDbStructureExtractor implements
      *
      * @return string[]
      * @throws ConnectionNotInjected
+     * @throws Exception
      */
     private function getTableList(): array
     {
-        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'";
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute();
+        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema= ?";
 
         $tables = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        foreach ($this->getConnection()->iterateAssociative($sql, ['public']) as $row) {
             $tables[] = $row['table_name'];
         }
 
@@ -120,6 +129,8 @@ class PostgresDbStructureExtractor implements
      * @return DdlQueryPartInterface[]
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
+     * @throws Exception
+     * @throws ExceptionInterface
      */
     private function getTableFieldsStructure(string $tableName): array
     {
@@ -134,11 +145,8 @@ class PostgresDbStructureExtractor implements
                 WHERE
                     table_name = :table_name";
 
-        $stmt = $this->getConnection()->prepare($sql);
-        $stmt->execute(['table_name' => $tableName]);
-
         $fields = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        foreach ($this->getConnection()->iterateAssociative($sql, ['table_name' => $tableName]) as $row) {
             $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
         }
 
@@ -150,12 +158,65 @@ class PostgresDbStructureExtractor implements
      *
      * @throws ConnectionNotInjected
      */
-    private function getConnection(): PDO
+    private function getConnection(): Connection
     {
         if ($this->conn === null) {
             throw ConnectionNotInjected::create();
         }
 
         return $this->conn;
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * @return void
+     *
+     * @throws ConnectionNotInjected
+     * @throws Exception
+     */
+    public function dumpStructure(): void
+    {
+        $database = $this->getConnection()->getDatabase();
+        $params = $this->getConnection()->getParams();
+        $command = [
+            $this->pgDump,
+            $database,
+            '-U ' . $params['user'],
+            '-h ' . $params['host'],
+            '-p ' . $params['port'],
+            '-s',
+        ];
+
+        $folderName = $this->getNewStructureFolderName($database);
+        $generateFile = $this->getNewStructureFileName($database);
+        $folderPath = $this->getStructureFolderPath($folderName);
+
+        $commandLine = implode(' ', $command);
+        $commandLine .= ' > ' . $folderPath. '/' . $generateFile;
+
+        $this->createStructureFolder($folderPath);
+
+        Process::fromShellCommandline($commandLine)->run();
+    }
+
+    private function createStructureFolder(string $path): void
+    {
+        $this->filesystem->mkdir($path);
+    }
+
+    private function getNewStructureFolderName(string $name): string
+    {
+        return $name . '_' . date('Ymd_His');
+    }
+
+    private function getNewStructureFileName(string $name): string
+    {
+        return '00_' . $name . '_structure.sql';
+    }
+
+    private function getStructureFolderPath(string $folderName): string
+    {
+        return $this->databaseDumpFolder . '/' . $folderName;
     }
 }
