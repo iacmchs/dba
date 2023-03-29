@@ -209,7 +209,7 @@ class PostgresDbStructureExtractor implements
      */
     private function getNewStructureFolderName(string $name): string
     {
-        return $name . '_' . date('Ymd_His');
+        return $name.'_'.date('Ymd_His');
     }
 
     /**
