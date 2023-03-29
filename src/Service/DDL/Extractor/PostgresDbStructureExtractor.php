@@ -188,6 +188,8 @@ class PostgresDbStructureExtractor implements
     /**
      * Return db connection.
      *
+     * @return Connection
+     *
      * @throws ConnectionNotInjected
      */
     private function getConnection(): Connection
