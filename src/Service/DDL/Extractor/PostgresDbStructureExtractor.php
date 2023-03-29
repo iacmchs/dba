@@ -88,6 +88,39 @@ class PostgresDbStructureExtractor implements
     }
 
     /**
+     * @inheritDoc
+     *
+     * @return void
+     *
+     * @throws ConnectionNotInjected
+     * @throws Exception
+     */
+    public function dumpStructure(): void
+    {
+        $database = $this->getConnection()->getDatabase();
+        $params = $this->getConnection()->getParams();
+        $command = [
+            $this->pgDump,
+            $database,
+            '-U '.$params['user'],
+            '-h '.$params['host'],
+            '-p '.$params['port'],
+            '-s',
+        ];
+
+        $folderName = $this->getNewStructureFolderName($database);
+        $generateFile = $this->getNewStructureFileName($database);
+        $folderPath = $this->getStructureFolderPath($folderName);
+
+        $commandLine = implode(' ', $command);
+        $commandLine .= ' > '.$folderPath.'/'.$generateFile;
+
+        $this->createStructureFolder($folderPath);
+
+        Process::fromShellCommandline($commandLine)->run();
+    }
+
+    /**
      * Return list of db tables.
      *
      * @return string[]
@@ -163,38 +196,12 @@ class PostgresDbStructureExtractor implements
     }
 
     /**
-     * @inheritDoc
+     * Create structure folder.
+     *
+     * @param string $path
      *
      * @return void
-     *
-     * @throws ConnectionNotInjected
-     * @throws Exception
      */
-    public function dumpStructure(): void
-    {
-        $database = $this->getConnection()->getDatabase();
-        $params = $this->getConnection()->getParams();
-        $command = [
-            $this->pgDump,
-            $database,
-            '-U ' . $params['user'],
-            '-h ' . $params['host'],
-            '-p ' . $params['port'],
-            '-s',
-        ];
-
-        $folderName = $this->getNewStructureFolderName($database);
-        $generateFile = $this->getNewStructureFileName($database);
-        $folderPath = $this->getStructureFolderPath($folderName);
-
-        $commandLine = implode(' ', $command);
-        $commandLine .= ' > ' . $folderPath. '/' . $generateFile;
-
-        $this->createStructureFolder($folderPath);
-
-        Process::fromShellCommandline($commandLine)->run();
-    }
-
     private function createStructureFolder(string $path): void
     {
         $this->filesystem->mkdir($path);
