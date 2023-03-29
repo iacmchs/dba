@@ -1,0 +1,7 @@
+project:
+  # Prefix may be used for stuff like task/commit prefix.
+  prefix: DBA
+  # Available values: symfony, drupal7.
+  framework: symfony
+  # The code of the language that is used in MRs, comments, etc.
+  lang: en
