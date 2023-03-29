@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @file
- * ExtractorFactory create instance which can extract db metadata.
- *
- * An extractor instance is created based on connection instance.
- */
-
 declare(strict_types=1);
 
 namespace App\Service\DDL;
@@ -18,6 +11,10 @@ use App\Service\DDL\Extractor\DbStructureExtractorInterface;
 use Doctrine\DBAL\Connection;
 use Traversable;
 
+/**
+ * ExtractorFactory create instance which can extract db metadata.
+ * An extractor instance is created based on connection instance.
+ */
 class ExtractorFactory
 {
     /**
