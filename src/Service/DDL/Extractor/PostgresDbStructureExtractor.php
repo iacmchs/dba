@@ -233,6 +233,6 @@ class PostgresDbStructureExtractor implements
      */
     private function getStructureFolderPath(string $folderName): string
     {
-        return $this->databaseDumpFolder . '/' . $folderName;
+        return $this->databaseDumpFolder.'/'.$folderName;
     }
 }
