@@ -91,6 +91,7 @@ class PostgresDbStructureExtractor implements
      * Return list of db tables.
      *
      * @return string[]
+     *
      * @throws ConnectionNotInjected
      * @throws Exception
      */
