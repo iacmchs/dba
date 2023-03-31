@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @file
- * ExtractorFactory create instance which can extract db metadata.
- *
- * An extractor instance is created based on connection instance.
- */
-
 declare(strict_types=1);
 
 namespace App\Service\DDL;
@@ -18,6 +11,10 @@ use App\Service\DDL\Extractor\DbStructureExtractorInterface;
 use Doctrine\DBAL\Connection;
 use Traversable;
 
+/**
+ * ExtractorFactory create instance which can extract db metadata.
+ * An extractor instance is created based on connection instance.
+ */
 class ExtractorFactory
 {
     /**
@@ -31,6 +28,7 @@ class ExtractorFactory
      * Create an extractor factory instance.
      *
      * @param Traversable $extractors
+     *
      * @throws InvalidStructureExtractorInterface
      */
     public function __construct(Traversable $extractors)
@@ -40,7 +38,6 @@ class ExtractorFactory
                 throw InvalidStructureExtractorInterface::byInterface(DbStructureExtractorInterface::class);
             }
 
-            /** @psalm-suppress InvalidPropertyAssignmentValue,UndefinedInterfaceMethod */
             $this->extractors[$extractor->getDbDriver()] = $extractor;
         }
     }
@@ -51,6 +48,7 @@ class ExtractorFactory
      * @param Connection $connection
      *
      * @return DbStructureExtractorInterface
+     *
      * @throws InvalidStructureExtractorInterface
      * @throws StructureExtractorNotFound
      */

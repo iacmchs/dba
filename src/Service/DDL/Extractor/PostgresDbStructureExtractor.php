@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Implementation of the DbStructureExtractorInterface for a Postgresql.
- */
-
 declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
@@ -22,6 +17,9 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
+/**
+ * Implementation of the DbStructureExtractorInterface for a PostgresQL.
+ */
 class PostgresDbStructureExtractor implements
     DbStructureExtractorInterface,
     DbDriverNameInterface,
@@ -37,22 +35,18 @@ class PostgresDbStructureExtractor implements
     /**
      * Create db structure extractor for Postgresql.
      *
-     * @param string $databaseDumpFolder
-     * @param string $pgDump
+     * @param string                $databaseDumpFolder
+     * @param string                $pgDump
      * @param DenormalizerInterface $denormalizer
-     * @param Filesystem $filesystem
+     * @param Filesystem            $filesystem
      */
-    public function __construct(
-        private readonly string $databaseDumpFolder,
-        private readonly string $pgDump,
-        private readonly DenormalizerInterface $denormalizer,
-        private readonly Filesystem $filesystem
-    )
+    public function __construct(private readonly string $databaseDumpFolder, private readonly string $pgDump, private readonly DenormalizerInterface $denormalizer, private readonly Filesystem $filesystem)
     {
     }
 
     /**
      * @inheritDoc
+     *
      * @throws ConnectionNotInjected
      * @throws ExceptionInterface
      */
@@ -68,6 +62,7 @@ class PostgresDbStructureExtractor implements
 
     /**
      * @inheritDoc
+     *
      * @throws ExceptionInterface
      * @throws ConnectionNotInjected
      */
@@ -93,9 +88,43 @@ class PostgresDbStructureExtractor implements
     }
 
     /**
+     * @inheritDoc
+     *
+     * @return void
+     *
+     * @throws ConnectionNotInjected
+     * @throws Exception
+     */
+    public function dumpStructure(): void
+    {
+        $database = $this->getConnection()->getDatabase();
+        $params = $this->getConnection()->getParams();
+        $command = [
+            $this->pgDump,
+            $database,
+            '-U '.$params['user'],
+            '-h '.$params['host'],
+            '-p '.$params['port'],
+            '-s',
+        ];
+
+        $folderName = $this->getNewStructureFolderName($database);
+        $generateFile = $this->getNewStructureFileName($database);
+        $folderPath = $this->getStructureFolderPath($folderName);
+
+        $commandLine = implode(' ', $command);
+        $commandLine .= ' > '.$folderPath.'/'.$generateFile;
+
+        $this->createStructureFolder($folderPath);
+
+        Process::fromShellCommandline($commandLine)->run();
+    }
+
+    /**
      * Return list of db tables.
      *
      * @return string[]
+     *
      * @throws ConnectionNotInjected
      * @throws Exception
      */
@@ -108,12 +137,15 @@ class PostgresDbStructureExtractor implements
             $tables[] = $row['table_name'];
         }
 
-        /** @psalm-var string[] */
         return $tables;
     }
 
     /**
      * Extract and return db table structure by name.
+     *
+     * @param string $tableName
+     *
+     * @return TableStructure
      *
      * @throws ConnectionNotInjected
      * @throws ExceptionInterface
@@ -126,8 +158,10 @@ class PostgresDbStructureExtractor implements
     /**
      * Extract and return table fields structures.
      *
+     * @param string $tableName
+     *
      * @return DdlQueryPartInterface[]
-     * @throws ExceptionInterface
+     *
      * @throws ConnectionNotInjected
      * @throws Exception
      * @throws ExceptionInterface
@@ -156,6 +190,8 @@ class PostgresDbStructureExtractor implements
     /**
      * Return db connection.
      *
+     * @return Connection
+     *
      * @throws ConnectionNotInjected
      */
     private function getConnection(): Connection
@@ -168,55 +204,50 @@ class PostgresDbStructureExtractor implements
     }
 
     /**
-     * @inheritDoc
+     * Create structure folder.
+     *
+     * @param string $path
      *
      * @return void
-     *
-     * @throws ConnectionNotInjected
-     * @throws Exception
      */
-    public function dumpStructure(): void
-    {
-        $database = $this->getConnection()->getDatabase();
-        $params = $this->getConnection()->getParams();
-        $command = [
-            $this->pgDump,
-            $database,
-            '-U ' . $params['user'],
-            '-h ' . $params['host'],
-            '-p ' . $params['port'],
-            '-s',
-        ];
-
-        $folderName = $this->getNewStructureFolderName($database);
-        $generateFile = $this->getNewStructureFileName($database);
-        $folderPath = $this->getStructureFolderPath($folderName);
-
-        $commandLine = implode(' ', $command);
-        $commandLine .= ' > ' . $folderPath. '/' . $generateFile;
-
-        $this->createStructureFolder($folderPath);
-
-        Process::fromShellCommandline($commandLine)->run();
-    }
-
     private function createStructureFolder(string $path): void
     {
         $this->filesystem->mkdir($path);
     }
 
+    /**
+     * Get new structure folder name.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
     private function getNewStructureFolderName(string $name): string
     {
-        return $name . '_' . date('Ymd_His');
+        return $name.'_'.date('Ymd_His');
     }
 
+    /**
+     * Get new structure file name.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
     private function getNewStructureFileName(string $name): string
     {
-        return '00_' . $name . '_structure.sql';
+        return '00_'.$name.'_structure.sql';
     }
 
+    /**
+     * Get structure folder path.
+     *
+     * @param string $folderName
+     *
+     * @return string
+     */
     private function getStructureFolderPath(string $folderName): string
     {
-        return $this->databaseDumpFolder . '/' . $folderName;
+        return $this->databaseDumpFolder.'/'.$folderName;
     }
 }
