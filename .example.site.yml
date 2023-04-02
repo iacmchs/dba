@@ -9,43 +9,301 @@ databases:
       tasks: 0.015
       # Don't copy data from tables which name matches this regex.
       field_revision_:
-        regex: 'field_revision_.*'
+        table_regex: '/^field_revision.*/'
         get: 0
-      # Get all rows from this table matching some conditions.
-      user:
+      # Get all rows from this table
+      node_revision: 1.0
+    # Create a full dump of this DB.
+    entities:
+      field_collection_item__field_complaint_docs:
+        table: field_collection_item
+        get: 0.01
+        where:
+          field_name: field_complaint_docs
+        relations:
+          field_data_field_cd_description:
+            where:
+              entity_type: field_collection_item
+              bundle: field_complaint_docs
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_cd_file:
+            where:
+              entity_type: field_collection_item
+              bundle: field_complaint_docs
+              entity_id: '%item_id'
+            limit: 1
+      field_collection_item__field_dsf_att_rescuer:
+        table: field_collection_item
+        get: 0.01
+        where:
+          field_name: field_dsf_att_rescuer
+        relations:
+          field_data_field_dsf_att_type:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_certificate_date_valid:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_certificate_status:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_certification_com_name:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_certification_dec_date:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_certification_dec_num:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_protocol_copy:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_dsf_rescue_operations:
+            where:
+              entity_type: field_collection_item
+              bundle: field_dsf_att_rescuer
+              entity_id: '%item_id'
+      field_collection_item__field_gims_is_anchor:
+        table: field_collection_item
+        get: 0.01
+        where:
+          field_name: field_gims_is_anchor
+        relations:
+          field_data_field_gims_isa_name:
+            where:
+              entity_type: field_collection_item
+              bundle: field_gims_is_anchor
+              entity_id: '%item_id'
+            limit: 1
+          field_data_field_gims_isa_state:
+            where:
+              entity_type: field_collection_item
+              bundle: field_gims_is_anchor
+              entity_id: '%item_id'
+            limit: 1
+      file_managed:
+        get: 0
+        relations:
+          file_usage:
+            where:
+              fid: '%fid'
+      user__drupal:
+        table: users
         get: 1
-        where: 'active = 1 AND created > current_date - interval "1 year"'
-        # Also anonymize some data.
-        override:
-          password: DummyPassword
-          username:
-            concat:
-              - random_name
-              - '@id'
-          last_name:
-            concat:
-              - random_item: ['Malfoy', 'Carolinus', 'Amon', 'Melf', 'Rune', 'Black', 'Walton', 'Everett', 'Morrow', 'Flagg']
-              - '-'
-              - '@id'
-          first_name:
-            random_item: ['Frodo', 'Sam', 'Gandalf', 'Aragorn', 'Gimli', 'Legolas', 'Boromir', 'Gollum', 'Sauron', 'Galadriel']
-          email: random_email
-          birthday: random_date
-          bio:
-            random_words:
-              min: 5
-              max: 255
-          inn:
-            random_int:
-              min: 100000000000
-              max: 200000000000
-          passport: '9999 999999'
-          message: ''
-  # Create a full dump of this DB.
-  queue:
-    credentials:
-      host: 1.2.3.4
-      port: 123
-      database: queue
-      user: poirot
-      password: PaSs-0-WoRd
+        where:
+          uid:
+            - 1
+            - '<='
+        relations:
+          field_data_field_usr_department:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+            relations:
+              field_usr_department:
+                table: node
+                entity: true
+                fields:
+                  id: nid
+                  bundle: type
+                values:
+                  id: '%field_usr_department_nid'
+          field_data_field_usr_fio:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          field_data_field_usr_fio_sign:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          field_data_field_usr_org:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+            relations:
+              field_usr_org:
+                table: node
+                entity: true
+                fields:
+                  id: nid
+                  bundle: type
+                values:
+                  id: '%field_usr_org_nid'
+          field_data_field_usr_org_department:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+            relations:
+              field_usr_org_department:
+                table: node
+                entity: true
+                fields:
+                  id: nid
+                  bundle: type
+                values:
+                  id: '%field_usr_org_department_nid'
+          field_data_field_usr_post:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          field_data_field_usr_post_sign:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          users_roles:
+            where:
+              uid: '%uid'
+      user__user:
+        table: users
+        get: 0.01
+        where:
+          uid:
+            - 1
+            - '>'
+        relations:
+          field_data_field_usr_department:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+            relations:
+              field_usr_department:
+                table: node
+                entity: true
+                fields:
+                  id: nid
+                  bundle: type
+                values:
+                  id: '%field_usr_department_nid'
+          field_data_field_usr_fio:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          field_data_field_usr_fio_sign:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          field_data_field_usr_org:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+            relations:
+              field_usr_org:
+                table: node
+                entity: true
+                fields:
+                  id: nid
+                  bundle: type
+                values:
+                  id: '%field_usr_org_nid'
+          field_data_field_usr_org_department:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+            relations:
+              field_usr_org_department:
+                table: node
+                entity: true
+                fields:
+                  id: nid
+                  bundle: type
+                values:
+                  id: '%field_usr_org_department_nid'
+          field_data_field_usr_post:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          field_data_field_usr_post_sign:
+            where:
+              entity_type: user
+              bundle: user
+              entity_id: '%uid'
+            limit: 1
+          users_roles:
+            where:
+              uid: '%uid'
+    anonymize:
+      file_managed:
+        where:
+          uri:
+            - '!^private://.*!'
+            - regex
+        fields:
+          filename:
+            method: 'Faker::lexify'
+            args:
+              - '??????????.txt'
+          uri:
+            method: concat
+            args:
+              - 'private://'
+              - '%filename'
+          filemime: text/plain
+      users:
+        where:
+          uid:
+            - 0
+            - '>'
+        fields:
+          name:
+            method: concat
+            args:
+              - method: 'Faker::word'
+              - _
+              - '%uid'
+          pass: password
+          mail:
+            method: concat
+            args:
+              - '%name'
+              - '@test.test'
+          init: '%mail'
+          data: null
