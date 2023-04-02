@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Interface describe an db structure extractor.
- */
-
 declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
