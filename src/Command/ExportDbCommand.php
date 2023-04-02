@@ -44,6 +44,11 @@ class ExportDbCommand extends Command
                 'dsn',
                 InputArgument::REQUIRED,
                 'Should match the pattern: "driver://user:password@host:port/database"'
+            )
+            ->addArgument(
+                'config',
+                InputArgument::OPTIONAL,
+                'Config file with ruleset of DB dumping. See example .example.site.yml'
             );
     }
 
