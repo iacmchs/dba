@@ -65,10 +65,11 @@ class ExportDbCommand extends Command
     /**
      * Run the app:db-export command.
      *
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
      *
      * @return int
+     *
      * @throws InvalidStructureExtractorInterface
      * @throws StructureExtractorNotFound
      * @throws DsnNotValidException
@@ -111,11 +112,13 @@ class ExportDbCommand extends Command
                 $tableCounter++;
             }
         } catch (PDOException $e) {
-            $io->error("Connection failed: " . $e->getMessage());
+            $io->error("Connection failed: ".$e->getMessage());
+
             return Command::FAILURE;
         }
 
         $io->success('Export completed.');
+
         return Command::SUCCESS;
     }
 
