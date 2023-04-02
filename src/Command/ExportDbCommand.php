@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * The entry point to db anonymizer command.
- */
 
 declare(strict_types=1);
 
@@ -22,6 +18,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/**
+ * Export DB command.
+ */
 #[AsCommand(
     name: 'app:db-export',
     description: 'Create DB dump to folder <DATABASE_DUMP_FOLDER>/<database-name_Ymd_His>. See DATABASE_DUMP_FOLDER in ENV file.'
