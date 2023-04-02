@@ -92,7 +92,7 @@ class PostgresDbStructureExtractor implements
      * @throws ConnectionNotInjected
      * @throws Exception
      */
-    public function dumpStructure(): void
+    public function dumpStructure(string $path): void
     {
         $database = $this->getConnection()->getDatabase();
         $params = $this->getConnection()->getParams();
@@ -105,14 +105,10 @@ class PostgresDbStructureExtractor implements
             '-s',
         ];
 
-        $folderName = $this->getNewStructureFolderName($database);
         $generateFile = $this->getNewStructureFileName($database);
-        $folderPath = $this->getStructureFolderPath($folderName);
 
         $commandLine = implode(' ', $command);
-        $commandLine .= ' > '.$folderPath.'/'.$generateFile;
-
-        $this->createStructureFolder($folderPath);
+        $commandLine .= ' > '.$path.'/'.$generateFile;
 
         Process::fromShellCommandline($commandLine)->run();
     }
