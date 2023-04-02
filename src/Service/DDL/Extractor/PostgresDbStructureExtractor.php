@@ -49,23 +49,6 @@ class PostgresDbStructureExtractor implements
      */
     public function extractTables(): array
     {
-        $tableStructure = [];
-        foreach ($this->getTableList() as $table) {
-            $tableStructure[] = $this->getTableStructure($table);
-        }
-
-        return $tableStructure;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @throws ExceptionInterface
-     * @throws ConnectionNotInjected
-     */
-    public function extractTable(string $name): TableStructure
-    {
-        return $this->getTableStructure($name);
     }
 
     /**
