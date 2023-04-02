@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Service\DDL\Extractor;
 
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
-use App\Model\DDL\DdlQueryPartInterface;
-use App\Model\DDL\FieldStructure;
-use App\Model\DDL\TableStructure;
 use App\Service\DbConnectionSetterInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
@@ -118,73 +115,6 @@ class PostgresDbStructureExtractor implements
         $this->createStructureFolder($folderPath);
 
         Process::fromShellCommandline($commandLine)->run();
-    }
-
-    /**
-     * Return list of db tables.
-     *
-     * @return string[]
-     *
-     * @throws ConnectionNotInjected
-     * @throws Exception
-     */
-    private function getTableList(): array
-    {
-        $sql = "SELECT table_name FROM information_schema.tables WHERE table_schema= ?";
-
-        $tables = [];
-        foreach ($this->getConnection()->iterateAssociative($sql, ['public']) as $row) {
-            $tables[] = $row['table_name'];
-        }
-
-        return $tables;
-    }
-
-    /**
-     * Extract and return db table structure by name.
-     *
-     * @param string $tableName
-     *
-     * @return TableStructure
-     *
-     * @throws ConnectionNotInjected
-     * @throws ExceptionInterface
-     */
-    private function getTableStructure(string $tableName): TableStructure
-    {
-        return new TableStructure($tableName, $this->getTableFieldsStructure($tableName));
-    }
-
-    /**
-     * Extract and return table fields structures.
-     *
-     * @param string $tableName
-     *
-     * @return DdlQueryPartInterface[]
-     *
-     * @throws ConnectionNotInjected
-     * @throws Exception
-     * @throws ExceptionInterface
-     */
-    private function getTableFieldsStructure(string $tableName): array
-    {
-        $sql = "SELECT
-                    column_name,
-                    data_type,
-                    is_nullable,
-                    column_default,
-                    character_maximum_length
-                FROM
-                    information_schema.columns
-                WHERE
-                    table_name = :table_name";
-
-        $fields = [];
-        foreach ($this->getConnection()->iterateAssociative($sql, ['table_name' => $tableName]) as $row) {
-            $fields[] = $this->denormalizer->denormalize($row, FieldStructure::class, 'array');
-        }
-
-        return $fields;
     }
 
     /**
