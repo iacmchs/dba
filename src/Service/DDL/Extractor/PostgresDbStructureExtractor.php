@@ -9,10 +9,7 @@ use App\Service\DbConnectionSetterInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
 use Doctrine\DBAL\Exception;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Implementation of the DbStructureExtractorInterface for a PostgresQL.
@@ -32,22 +29,9 @@ class PostgresDbStructureExtractor implements
     /**
      * Create db structure extractor for Postgresql.
      *
-     * @param string                $databaseDumpFolder
-     * @param string                $pgDump
-     * @param DenormalizerInterface $denormalizer
-     * @param Filesystem            $filesystem
+     * @param string $pgDump
      */
-    public function __construct(private readonly string $databaseDumpFolder, private readonly string $pgDump, private readonly DenormalizerInterface $denormalizer, private readonly Filesystem $filesystem)
-    {
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @throws ConnectionNotInjected
-     * @throws ExceptionInterface
-     */
-    public function extractTables(): array
+    public function __construct(private readonly string $pgDump)
     {
     }
 
@@ -113,30 +97,6 @@ class PostgresDbStructureExtractor implements
     }
 
     /**
-     * Create structure folder.
-     *
-     * @param string $path
-     *
-     * @return void
-     */
-    private function createStructureFolder(string $path): void
-    {
-        $this->filesystem->mkdir($path);
-    }
-
-    /**
-     * Get new structure folder name.
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    private function getNewStructureFolderName(string $name): string
-    {
-        return $name.'_'.date('Ymd_His');
-    }
-
-    /**
      * Get new structure file name.
      *
      * @param string $name
@@ -146,17 +106,5 @@ class PostgresDbStructureExtractor implements
     private function getNewStructureFileName(string $name): string
     {
         return '00_'.$name.'_structure.sql';
-    }
-
-    /**
-     * Get structure folder path.
-     *
-     * @param string $folderName
-     *
-     * @return string
-     */
-    private function getStructureFolderPath(string $folderName): string
-    {
-        return $this->databaseDumpFolder.'/'.$folderName;
     }
 }
