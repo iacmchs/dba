@@ -79,8 +79,6 @@ class ExportDbCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        // @todo Uncompleted method. Should be improved and finished.
-
         $dsn = $input->getArgument('dsn');
         $configFile = $input->getArgument('config');
 
@@ -92,7 +90,6 @@ class ExportDbCommand extends Command
 
             $configuration =  new ExportDbConfiguration($configFile);
             $dataExtractor = $this->extractorFactory->createDataExtractor($connector, $configuration);
-
 
             $folderName = $this->getNewDumpFolderName($connector->getDatabase());
             $folderPath = $this->getDumpFolderPath($folderName);
