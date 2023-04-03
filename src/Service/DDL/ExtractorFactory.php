@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Service\DDL;
 
 use App\Configuration\ExportDbConfiguration;
-use App\Exception\Service\DDL\DataExtractorNotFound;
-use App\Exception\Service\DDL\InvalidStructureExtractorInterface;
+use App\Exception\Service\DDL\DataExtractorNotFoundException;
+use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
 use App\Service\DbConnectionSetterInterface;
 use App\Service\DDL\Extractor\DbStructureExtractorInterface;
@@ -50,7 +50,7 @@ class ExtractorFactory
      *
      * @return DbStructureExtractorInterface
      *
-     * @throws InvalidStructureExtractorInterface
+     * @throws InvalidExtractorInterfaceException
      * @throws StructureExtractorNotFound
      */
     public function createStructureExtractor(Connection $connection): DbStructureExtractorInterface
@@ -62,7 +62,7 @@ class ExtractorFactory
         /** @var DbStructureExtractorInterface $extractor */
         $extractor = $this->extractors[$connection->getDriver()::class][DbStructureExtractorInterface::class];
         if (!$extractor instanceof DbConnectionSetterInterface) {
-            throw InvalidStructureExtractorInterface::byInterface(DbConnectionSetterInterface::class);
+            throw InvalidExtractorInterfaceException::byInterface(DbConnectionSetterInterface::class);
         }
 
         $extractor->setDbConnection($connection);
@@ -78,19 +78,19 @@ class ExtractorFactory
      *
      * @return DbDataExtractorInterface
      *
-     * @throws DataExtractorNotFound
-     * @throws InvalidStructureExtractorInterface
+     * @throws DataExtractorNotFoundException
+     * @throws InvalidExtractorInterfaceException
      */
     public function createDataExtractor(Connection $connection, ExportDbConfiguration $configuration): DbDataExtractorInterface
     {
         if (!isset($this->extractors[$connection->getDriver()::class][DbDataExtractorInterface::class])) {
-            throw DataExtractorNotFound::byDbDriverName($connection->getDriver()::class);
+            throw DataExtractorNotFoundException::byDbDriverName($connection->getDriver()::class);
         }
 
         /** @var DbDataExtractorInterface $extractor */
         $extractor = $this->extractors[$connection->getDriver()::class][DbDataExtractorInterface::class];
         if (!$extractor instanceof DbConnectionSetterInterface) {
-            throw InvalidStructureExtractorInterface::byInterface(DbConnectionSetterInterface::class);
+            throw InvalidExtractorInterfaceException::byInterface(DbConnectionSetterInterface::class);
         }
 
         $extractor->setDbConnection($connection);
