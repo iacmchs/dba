@@ -71,7 +71,7 @@ class ExtractorFactory
     }
 
     /**
-     * Create db structure extractor based on db connection.
+     * Create db data extractor based on db connection.
      *
      * @param Connection            $connection
      * @param ExportDbConfiguration $configuration
