@@ -28,16 +28,10 @@ class ExtractorFactory
      * Create an extractor factory instance.
      *
      * @param Traversable $extractors
-     *
-     * @throws InvalidStructureExtractorInterface
      */
     public function __construct(Traversable $extractors)
     {
         foreach ($extractors as $extractor) {
-            if (!$extractor instanceof DbStructureExtractorInterface || !$extractor instanceof DbDataExtractorInterface) {
-                throw InvalidStructureExtractorInterface::byInterface(DbStructureExtractorInterface::class);
-            }
-
             if ($extractor instanceof DbStructureExtractorInterface) {
                 $this->extractors[$extractor->getDbDriver()][DbStructureExtractorInterface::class] = $extractor;
                 continue;
