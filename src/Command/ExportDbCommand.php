@@ -98,7 +98,7 @@ class ExportDbCommand extends Command
             $structureExtractor->dumpStructure($folderPath);
             $io->success('Structure export completed.');
 
-            $tableCounter = 10;
+            $tablePrefixNameCounter = 10;
             $tables = $connector->createSchemaManager()->listTableNames();
 
             foreach ($tables as $table) {
@@ -106,10 +106,10 @@ class ExportDbCommand extends Command
                     $io->success('Table '.$table.' skipped.');
                 }
 
-                $dataExtractor->dumpTable($table, $folderPath, (string) $tableCounter);
+                $dataExtractor->dumpTable($table, $folderPath, (string) $tablePrefixNameCounter);
                 $io->success('Table '.$table.' export completed.');
 
-                $tableCounter++;
+                $tablePrefixNameCounter++;
             }
         } catch (PDOException $e) {
             $io->error("Connection failed: ".$e->getMessage());
