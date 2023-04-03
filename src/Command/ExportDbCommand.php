@@ -97,6 +97,8 @@ class ExportDbCommand extends Command
             $folderName = $this->getNewDumpFolderName($connector->getDatabase());
             $folderPath = $this->getDumpFolderPath($folderName);
             $this->createDumpFolder($folderPath);
+            $io->success("Database dump folder $folderPath created.");
+
             $structureExtractor->dumpStructure($folderPath);
             $io->success('Structure export completed.');
 
