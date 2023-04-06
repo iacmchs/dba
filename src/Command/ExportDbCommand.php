@@ -96,9 +96,9 @@ class ExportDbCommand extends Command
                 'Should match the pattern: "driver://user:password@host:port/database"'
             )
             ->addArgument(
-                'config',
-                InputArgument::OPTIONAL,
-                'Config file with ruleset of DB dumping. See example .example.site.yml'
+                'config-path',
+                InputArgument::REQUIRED,
+                'A path to the config file with DB dump settings. See .example.dbaconfig.yml'
             );
     }
 
@@ -121,12 +121,12 @@ class ExportDbCommand extends Command
         try {
             // Get arguments.
             $dsn = $input->getArgument('dsn');
-            $configFile = $input->getArgument('config');
+            $configPath = $input->getArgument('config-path');
 
             // Initialize some variables.
             $this->io = new SymfonyStyle($input, $output);
             $this->connection = $this->connector->create($dsn);
-            $this->configuration =  new ExportDbConfiguration($configFile);
+            $this->configuration =  new ExportDbConfiguration($configPath);
             $folderName = $this->getNewDumpFolderName($this->connection->getDatabase());
             $this->dumpPath = $this->getDumpFolderPath($folderName);
             $this->createDumpFolder($this->dumpPath);
