@@ -81,7 +81,8 @@ class PostgresDataExtractor implements
      */
     public function dumpTable(string $table, string $path, ?string $fileNamePrefix = '10'): void
     {
-        $sql = "INSERT INTO $table VALUES";
+        $filePath = $path . '/' . $this->getNewTableFileName($table, $fileNamePrefix);
+        $sql = "INSERT INTO $table VALUES" . PHP_EOL;
         $where = '';
 
         $percent = $this->getPercent($table);
@@ -93,31 +94,34 @@ class PostgresDataExtractor implements
         $haveResult = false;
         foreach ($this->getConnection()->iterateNumeric($requestTable) as $row) {
             $haveResult = true;
-            $result = '';
+            // Export previous row to file.
+            $this->filesystem->appendToFile($filePath, $sql);
+            $sql = '';
+
+            // Prepare current row for export.
             foreach ($row as $key => $item) {
                 if (null === $item) {
-                    $result .= 'null';
+                    $sql .= 'null';
                 } elseif (is_bool($item)) {
-                    $result .= $item ? 'true' : 'false';
+                    $sql .= $item ? 'true' : 'false';
                 } elseif (is_int($item) || is_float($item)) {
-                    $result .= $item;
+                    $sql .= $item;
                 } else {
-                    $result .= "'$item'";
+                    $sql .= "'$item'";
                 }
 
                 if (array_key_last($row) !== $key) {
-                    $result .= ',';
+                    $sql .= ',';
                 }
             }
 
-            $sql .= " ($result),";
+            $sql = "($sql)," . PHP_EOL;
         }
 
+        // Export last row to file.
         if ($haveResult) {
-            $sql = rtrim($sql, ',');
-            $sql .= ';';
-            $fileName = $this->getNewTableFileName($table, $fileNamePrefix);
-            $this->filesystem->dumpFile($path.'/'.$fileName, $sql);
+            $sql = rtrim(rtrim($sql), ',') . ';';
+            $this->filesystem->appendToFile($filePath, $sql);
         }
     }
 
