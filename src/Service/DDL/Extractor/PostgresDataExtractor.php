@@ -161,13 +161,10 @@ class PostgresDataExtractor implements
      *   where 1 stands for 100%.
      *   If table is not listed in database.tables section of the config file
      *   then we assume that this table should be fully dumped (1 is returned).
-     *
-     * @throws \Doctrine\DBAL\Exception
      */
     private function getPercent(string $table): float
     {
-        $database = $this->connection->getDatabase();
-        $configTables = $this->configuration->getTables($database);
+        $configTables = $this->configuration->getTables();
         $percent = NULL;
 
         foreach ($configTables as $configTableKey => $configTableValue) {

@@ -18,8 +18,8 @@ class ExportDbConfiguration implements ExportDbConfigurationInterface
         $this->config = Yaml::parse(file_get_contents($file));
     }
 
-    public function getTables(string $database): array
+    public function getTables(): array
     {
-        return $this->config['databases'][$database]['tables'];
+        return $this->config['database']['tables'] ?? [];
     }
 }
