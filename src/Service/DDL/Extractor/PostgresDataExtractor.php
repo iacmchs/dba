@@ -193,10 +193,10 @@ class PostgresDataExtractor implements
      *
      * @return string
      */
-    private function getNewTableFileName(string $name, string $prefix): string
+    private function getNewTableFileName(string $name, ?string $prefix = ''): string
     {
         $name = str_replace('"', '', $name);
 
-        return $prefix.'_'.$name.'.sql';
+        return ($prefix ? $prefix.'_' : '').$name.'.sql';
     }
 }
