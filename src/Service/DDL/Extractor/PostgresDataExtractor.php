@@ -131,7 +131,7 @@ class PostgresDataExtractor implements
      *
      * @throws Exception
      */
-    public function isTableCanBeDumped(string $table): bool
+    public function canTableBeDumped(string $table): bool
     {
         return (bool) $this->getPercent($table);
     }

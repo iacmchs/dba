@@ -25,5 +25,5 @@ interface DbDataExtractorInterface
      *
      * @return bool
      */
-    public function isTableCanBeDumped(string $table): bool;
+    public function canTableBeDumped(string $table): bool;
 }

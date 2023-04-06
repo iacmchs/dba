@@ -168,7 +168,7 @@ class ExportDbCommand extends Command
         $fileNamePrefix = '10';
 
         foreach ($tables as $table) {
-            if ($dataExtractor->isTableCanBeDumped($table)) {
+            if ($dataExtractor->canTableBeDumped($table)) {
                 $this->io->success('Table '.$table.' skipped.');
             }
 
