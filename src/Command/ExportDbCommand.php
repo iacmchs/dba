@@ -11,6 +11,7 @@ use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
 use App\Infrastructure\DBConnector;
 use App\Service\DDL\ExtractorFactory;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use PDOException;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -30,6 +31,35 @@ use Symfony\Component\Filesystem\Filesystem;
 )]
 class ExportDbCommand extends Command
 {
+
+    /**
+     * A database connection.
+     *
+     * @var \Doctrine\DBAL\Connection
+     */
+    private Connection $connection;
+
+    /**
+     * The db export configuration.
+     *
+     * @var \App\Configuration\ExportDbConfiguration
+     */
+    private ExportDbConfiguration $configuration;
+
+    /**
+     * The io object.
+     *
+     * @var \Symfony\Component\Console\Output\OutputInterface
+     */
+    private OutputInterface $io;
+
+    /**
+     * A path where database export should be saved to.
+     *
+     * @var string
+     */
+    private string $dumpPath;
+
     /**
      * ExportDbCommand constructor.
      *
@@ -64,7 +94,7 @@ class ExportDbCommand extends Command
     }
 
     /**
-     * Run the app:db-export command.
+     * Do the database dump.
      *
      * @param InputInterface  $input
      * @param OutputInterface $output
@@ -79,48 +109,71 @@ class ExportDbCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $dsn = $input->getArgument('dsn');
-        $configFile = $input->getArgument('config');
-
-        $io = new SymfonyStyle($input, $output);
-
         try {
-            $connector = $this->connector->create($dsn);
-            $structureExtractor = $this->extractorFactory->createStructureExtractor($connector);
+            // Get arguments.
+            $dsn = $input->getArgument('dsn');
+            $configFile = $input->getArgument('config');
 
-            $configuration =  new ExportDbConfiguration($configFile);
-            $dataExtractor = $this->extractorFactory->createDataExtractor($connector, $configuration);
+            // Initialize some variables.
+            $this->io = new SymfonyStyle($input, $output);
+            $this->connection = $this->connector->create($dsn);
+            $this->configuration =  new ExportDbConfiguration($configFile);
+            $folderName = $this->getNewDumpFolderName($this->connection->getDatabase());
+            $this->dumpPath = $this->getDumpFolderPath($folderName);
+            $this->createDumpFolder($this->dumpPath);
 
-            $folderName = $this->getNewDumpFolderName($connector->getDatabase());
-            $folderPath = $this->getDumpFolderPath($folderName);
-            $this->createDumpFolder($folderPath);
-            $io->success("Database dump folder $folderPath created.");
-
-            $structureExtractor->dumpStructure($folderPath);
-            $io->success('Structure export completed.');
-
-            $tablePrefixNameCounter = 10;
-            $tables = $connector->createSchemaManager()->listTableNames();
-
-            foreach ($tables as $table) {
-                if ($dataExtractor->isTableCanBeDumped($table)) {
-                    $io->success('Table '.$table.' skipped.');
-                }
-
-                $dataExtractor->dumpTable($table, $folderPath, (string) $tablePrefixNameCounter);
-                $io->success('Table '.$table.' export completed.');
-
-                $tablePrefixNameCounter++;
-            }
+            // Dump the database.
+            $this->dumpStructure();
+            $this->dumpTables();
         } catch (PDOException $e) {
-            $io->error("Connection failed: ".$e->getMessage());
+            $this->io->error("Connection failed: ".$e->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success('Export completed.');
+        $this->io->success('Export completed.');
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Dumps db structure.
+     *
+     * @return void
+     *
+     * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
+     * @throws \App\Exception\Service\DDL\StructureExtractorNotFound
+     */
+    public function dumpStructure(): void
+    {
+        $structureExtractor = $this->extractorFactory->createStructureExtractor($this->connection);
+        $structureExtractor->dumpStructure($this->dumpPath);
+        $this->io->success('Structure export completed.');
+    }
+
+    /**
+     * Dumps db tables (from database.tables config section).
+     *
+     * @return void
+     *
+     * @throws \App\Exception\Service\DDL\DataExtractorNotFoundException
+     * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function dumpTables()
+    {
+        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configuration);
+        $tables = $this->connection->createSchemaManager()->listTableNames();
+        $fileNamePrefix = '10';
+
+        foreach ($tables as $table) {
+            if ($dataExtractor->isTableCanBeDumped($table)) {
+                $this->io->success('Table '.$table.' skipped.');
+            }
+
+            $dataExtractor->dumpTable($table, $this->dumpPath, $fileNamePrefix);
+            $this->io->success('Table '.$table.' export completed.');
+        }
     }
 
     /**
@@ -139,6 +192,7 @@ class ExportDbCommand extends Command
      * Get structure folder path.
      *
      * @param string $folderName
+     *   Folder name.
      *
      * @return string
      */
@@ -151,6 +205,7 @@ class ExportDbCommand extends Command
      * Get new structure folder name.
      *
      * @param string $name
+     *   Folder base name.
      *
      * @return string
      */
