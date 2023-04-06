@@ -62,6 +62,13 @@ class ExportDbCommand extends Command
     private string $dumpPath;
 
     /**
+     * Command execution start time.
+     *
+     * @var int
+     */
+    private int $timeStart;
+
+    /**
      * ExportDbCommand constructor.
      *
      * @param string           $databaseDumpFolder
@@ -72,6 +79,7 @@ class ExportDbCommand extends Command
     public function __construct(private readonly string $databaseDumpFolder, private readonly ExtractorFactory $extractorFactory, private readonly DBConnector $connector, private readonly Filesystem $filesystem)
     {
         parent::__construct();
+        $this->timeStart = time();
     }
 
     /**
@@ -123,15 +131,30 @@ class ExportDbCommand extends Command
             $this->dumpPath = $this->getDumpFolderPath($folderName);
             $this->createDumpFolder($this->dumpPath);
 
+            // Declare the steps.
+            $steps[] = [
+                'title' => 'Database structure export',
+                'method' => 'dumpStructure',
+            ];
+            $steps[] = [
+                'title' => 'Database tables export',
+                'method' => 'dumpTables',
+            ];
+            $totalSteps = count($steps);
+
             // Dump the database.
-            $this->dumpStructure();
-            $this->dumpTables();
+            foreach ($steps as $num => $step) {
+                $this->io->block('Step ' . ($num + 1) . '/' . $totalSteps . '. ' . $step['title']);
+                $this->{$step['method']}();
+            }
         } catch (PDOException $e) {
-            $this->io->error("Connection failed: ".$e->getMessage());
+            $this->io->error($e->getMessage());
 
             return Command::FAILURE;
         }
 
+        $this->writeln('', FALSE);
+        $this->writeln('Woohoo!');
         $this->io->success('Export completed.');
 
         return Command::SUCCESS;
@@ -147,9 +170,10 @@ class ExportDbCommand extends Command
      */
     public function dumpStructure(): void
     {
+        $this->write("Exporting DB structure...");
         $structureExtractor = $this->extractorFactory->createStructureExtractor($this->connection);
         $structureExtractor->dumpStructure($this->dumpPath);
-        $this->io->success('Structure export completed.');
+        $this->writeln(' done.', FALSE);
     }
 
     /**
@@ -168,11 +192,12 @@ class ExportDbCommand extends Command
 
         foreach ($tables as $table) {
             if ($dataExtractor->canTableBeDumped($table)) {
+                $this->write("Exporting $table...");
                 $dataExtractor->dumpTable($table, $this->dumpPath);
-                $this->io->success('Table '.$table.' export completed.');
+                $this->writeln(' done.', FALSE);
             }
             else {
-                $this->io->success('Table '.$table.' skipped.');
+                $this->writeln("Skipping $table.");
             }
         }
     }
@@ -213,5 +238,68 @@ class ExportDbCommand extends Command
     private function getNewDumpFolderName(string $name): string
     {
         return $name.'_'.date('Ymd_His');
+    }
+
+    /**
+     * Writes a message to the output.
+     *
+     * @param string $message
+     *   A message text.
+     * @param bool $withDuration
+     *   TRUE - prepend a message with time duration.
+     *
+     * @return void
+     */
+    private function write(string $message, bool $withDuration = TRUE) {
+        $this->io->write(($withDuration ? '[' . $this->getDurationFormatted() . '] ' : '') . $message);
+    }
+
+    /**
+     * Writes a message to the output and adds a newline at the end.
+     *
+     * @param string $message
+     *   A message text.
+     * @param bool $withDuration
+     *   TRUE - prepend a message with time duration.
+     *
+     * @return void
+     */
+    private function writeln(string $message, bool $withDuration = TRUE) {
+        $this->write($message, $withDuration);
+        $this->io->writeln('');
+    }
+
+    /**
+     * Returns the duration (of command execution).
+     *
+     * @param int $timeStart
+     *   Start time.
+     * @param int $timeEnd
+     *   End time or current time.
+     *
+     * @return string
+     *   Time interval duration as hh:mm:ss.
+     */
+    private function getDurationFormatted(int $timeStart = 0, int $timeEnd = 0): string
+    {
+        $timeStart = $timeStart ?: $this->timeStart;
+        $duration = ($timeEnd ?: time()) - $timeStart;
+        $days = floor($duration / 86400);
+        $duration -= $days * 86400;
+        $hours = floor($duration / 3600);
+        $duration -= $hours * 3600;
+        $minutes = floor($duration / 60);
+        $seconds = ($duration - $minutes * 60);
+        $res = '';
+
+        if ($days > 0) {
+            $res .= $days . 'd ';
+        }
+
+        $res .= str_pad((string) $hours, 2, '0', STR_PAD_LEFT);
+        $res .= ':' . str_pad((string) $minutes, 2, '0', STR_PAD_LEFT);
+        $res .= ':' . str_pad((string) $seconds, 2, '0', STR_PAD_LEFT);
+
+        return $res;
     }
 }
