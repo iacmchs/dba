@@ -189,6 +189,7 @@ class ExportDbCommand extends Command
     {
         $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configuration);
         $tables = $this->connection->createSchemaManager()->listTableNames();
+        sort($tables);
 
         foreach ($tables as $table) {
             if ($dataExtractor->canTableBeDumped($table)) {
