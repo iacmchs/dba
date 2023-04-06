@@ -153,36 +153,41 @@ class PostgresDataExtractor implements
     }
 
     /**
-     * Get percent.
+     * Get table dump percent.
      *
      * @param string $table
      *
-     * @return float|null
+     * @return float
+     *   How much of table contents should be dumped - a value from 0 to 1,
+     *   where 1 stands for 100%.
+     *   If table is not listed in database.tables section of the config file
+     *   then we assume that this table should be fully dumped (1 is returned).
      *
-     * @throws Exception
+     * @throws \Doctrine\DBAL\Exception
      */
-    private function getPercent(string $table): ?float
+    private function getPercent(string $table): float
     {
         $database = $this->connection->getDatabase();
         $configTables = $this->configuration->getTables($database);
+        $percent = NULL;
 
-        $percent = null;
         foreach ($configTables as $configTableKey => $configTableValue) {
-            if (is_numeric($configTableValue)) {
-                if ($configTableKey !== $table) {
-                    continue;
-                }
-
+            if (is_numeric($configTableValue) && $configTableKey == $table) {
                 $percent = (float) $configTableValue;
-                break;
+            }
+            elseif (!empty($configTableValue['table']) && $configTableValue['table'] === $table) {
+                $percent = (float) ($configTableValue['get'] ?? 0);
+            }
+            elseif (!empty($configTableValue['table_regex']) && preg_match($configTableValue['table_regex'], $table)) {
+                $percent = (float) ($configTableValue['get'] ?? 0);
             }
 
-            if (preg_match($configTableValue['table_regex'], $table)) {
-                $percent = (float) $configTableValue['get'];
+            if ($percent) {
+                break;
             }
         }
 
-        return $percent;
+        return $percent ?? 1;
     }
 
     /**
