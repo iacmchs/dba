@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Configuration\ExportDbConfiguration;
+use App\Configuration\ExportDbConfigurationInterface;
 use App\Exception\DsnNotValidException;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
@@ -42,9 +43,9 @@ class ExportDbCommand extends Command
     /**
      * The db export configuration.
      *
-     * @var \App\Configuration\ExportDbConfiguration
+     * @var \App\Configuration\ExportDbConfigurationInterface
      */
-    private ExportDbConfiguration $configuration;
+    private ExportDbConfigurationInterface $configuration;
 
     /**
      * The io object.

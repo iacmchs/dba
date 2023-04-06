@@ -4,7 +4,7 @@ namespace App\Configuration;
 
 use Symfony\Component\Yaml\Yaml;
 
-class ExportDbConfiguration
+class ExportDbConfiguration implements ExportDbConfigurationInterface
 {
     private array $config;
 
