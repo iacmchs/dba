@@ -165,15 +165,15 @@ class ExportDbCommand extends Command
     {
         $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configuration);
         $tables = $this->connection->createSchemaManager()->listTableNames();
-        $fileNamePrefix = '10';
 
         foreach ($tables as $table) {
             if ($dataExtractor->canTableBeDumped($table)) {
+                $dataExtractor->dumpTable($table, $this->dumpPath);
+                $this->io->success('Table '.$table.' export completed.');
+            }
+            else {
                 $this->io->success('Table '.$table.' skipped.');
             }
-
-            $dataExtractor->dumpTable($table, $this->dumpPath, $fileNamePrefix);
-            $this->io->success('Table '.$table.' export completed.');
         }
     }
 
