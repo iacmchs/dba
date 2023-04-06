@@ -12,11 +12,11 @@ interface DbDataExtractorInterface
      *
      * @param string      $table
      * @param string      $path
-     * @param string|null $prefix
+     * @param string|null $fileNamePrefix
      *
      * @return void
      */
-    public function dumpTable(string $table, string $path, ?string $prefix = ''): void;
+    public function dumpTable(string $table, string $path, ?string $fileNamePrefix = ''): void;
 
     /**
      * Can table be dumped.

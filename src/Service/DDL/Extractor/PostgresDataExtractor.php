@@ -74,23 +74,22 @@ class PostgresDataExtractor implements
     /**
      * @param string      $table
      * @param string      $path
-     * @param string|null $prefix
+     * @param string|null $fileNamePrefix
      *
      * @throws ConnectionNotInjected
      * @throws Exception
      */
-    public function dumpTable(string $table, string $path, ?string $prefix = ''): void
+    public function dumpTable(string $table, string $path, ?string $fileNamePrefix = '10'): void
     {
         $sql = "INSERT INTO $table VALUES";
-
-        $sqlRandom = '';
+        $where = '';
 
         $percent = $this->getPercent($table);
         if ($percent && $percent < 1) {
-            $sqlRandom = " WHERE RANDOM() < $percent";
+            $where = " WHERE RANDOM() < $percent";
         }
 
-        $requestTable = "SELECT * FROM $table".$sqlRandom;
+        $requestTable = "SELECT * FROM $table".$where;
         $haveResult = false;
         foreach ($this->getConnection()->iterateNumeric($requestTable) as $row) {
             $haveResult = true;
@@ -117,7 +116,7 @@ class PostgresDataExtractor implements
         if ($haveResult) {
             $sql = rtrim($sql, ',');
             $sql .= ';';
-            $fileName = $this->getNewTableFileName($table, $prefix);
+            $fileName = $this->getNewTableFileName($table, $fileNamePrefix);
             $this->filesystem->dumpFile($path.'/'.$fileName, $sql);
         }
     }
