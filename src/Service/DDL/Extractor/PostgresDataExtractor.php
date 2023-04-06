@@ -104,10 +104,13 @@ class PostgresDataExtractor implements
                     $sql .= 'null';
                 } elseif (is_bool($item)) {
                     $sql .= $item ? 'true' : 'false';
-                } elseif (is_int($item) || is_float($item)) {
+                } elseif (is_numeric($item)) {
                     $sql .= $item;
+                } elseif (is_resource($item)) {
+                    $item = stream_get_contents($item);
+                    $sql .= "'" . pg_escape_bytea($item) . "'";
                 } else {
-                    $sql .= "'$item'";
+                    $sql .= "'" . pg_escape_string((string) $item) . "'";
                 }
 
                 if (array_key_last($row) !== $key) {
