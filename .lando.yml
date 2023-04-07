@@ -16,11 +16,11 @@ services:
 tooling:
   phpcs:branch:
     service: appserver
-    cmd: git diff --diff-filter=d  origin DBA-3 --name-only -- '*.php' | xargs -r /app/vendor/bin/phpcs --standard=/app/phpcs.xml --colors
+    cmd: git diff --diff-filter=d develop --name-only -- '*.php' | xargs -r /app/vendor/bin/phpcs --standard=/app/phpcs.xml --colors
     description: Runs phpcbf command to fix files updated on current git branch.
   phpcbf:branch:
     service: appserver
-    cmd: git diff --diff-filter=d  origin DBA-3 --name-only -- '*.php' | xargs -r /app/vendor/bin/phpcbf --standard=/app/phpcs.xml
+    cmd: git diff --diff-filter=d develop --name-only -- '*.php' | xargs -r /app/vendor/bin/phpcbf --standard=/app/phpcs.xml
     description: Runs phpcbf command to fix files updated on current git branch.
   phpcs:
     service: appserver
