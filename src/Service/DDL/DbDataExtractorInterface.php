@@ -10,20 +10,29 @@ interface DbDataExtractorInterface
     /**
      * Dump table.
      *
-     * @param string      $table
-     * @param string      $path
-     * @param string|null $fileNamePrefix
+     * @param string $tableName
+     *   DB table name.
+     * @param string $dir
+     *   Path do directory that contains exported files.
+     * @param array $tableConfig
+     *   Table config. If not set then retrieved automatically by table name.
+     * @param string $fileNamePrefix
+     *   File name prefix.
      *
      * @return void
      */
-    public function dumpTable(string $table, string $path, ?string $fileNamePrefix = ''): void;
+    public function dumpTable(string $tableName, string $dir, array $tableConfig = [], string $fileNamePrefix = ''): void;
 
     /**
-     * Can table be dumped.
+     * Checks if table can be dumped.
      *
-     * @param string $table
+     * @param string $tableName
+     *   DB table name.
+     * @param array $tableConfig
+     *   Table config. If not set then retrieved automatically by table name.
      *
      * @return bool
+     *   True if table data dump percentage is > 0.
      */
-    public function canTableBeDumped(string $table): bool;
+    public function canTableBeDumped(string $tableName, array $tableConfig = []): bool;
 }

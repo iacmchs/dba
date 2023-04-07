@@ -4,24 +4,33 @@ declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
 
-use App\Configuration\ExportDbConfiguration;
+use App\Configuration\ConfigurationManagerInterface;
+use App\Exception\Service\DDL\Extractor\ConfigurationManagerNotInjected;
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
 use App\Service\DbConnectionSetterInterface;
 use App\Service\DDL\DbDataExtractorInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
-use Doctrine\DBAL\Exception;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * PostgreSQL data extractor.
  */
 class PostgresDataExtractor implements
+    DbDataExtractorInterface,
     DbDriverNameInterface,
     DbConnectionSetterInterface,
-    DbDataConfigurationSetterInterface,
-    DbDataExtractorInterface
+    ConfigurationManagerSetterInterface
 {
+    /**
+     * DB connection.
+     *
+     * @var Connection|null
+     */
+    private ?Connection $connection;
+
+    private ?ConfigurationManagerInterface $configurationManager;
+
     /**
      * @param Filesystem $filesystem
      */
@@ -30,25 +39,27 @@ class PostgresDataExtractor implements
     }
 
     /**
-     * DB connection.
-     *
-     * @var Connection|null
-     */
-    private ?Connection $connection = null;
-
-    /**
-     * Export DB configuration
-     *
-     * @var ExportDbConfiguration|null
-     */
-    private ?ExportDbConfiguration $configuration = null;
-
-    /**
      * @inheritDoc
      */
     public function getDbDriver(): string
     {
         return Driver::class;
+    }
+
+    /**
+     * Returns db connection.
+     *
+     * @return Connection
+     *
+     * @throws ConnectionNotInjected
+     */
+    private function getConnection(): Connection
+    {
+        if (!$this->connection) {
+            throw ConnectionNotInjected::create();
+        }
+
+        return $this->connection;
     }
 
     /**
@@ -60,42 +71,49 @@ class PostgresDataExtractor implements
     }
 
     /**
-     * @inheritDoc
+     * Returns configuration manager.
      *
-     * @param ExportDbConfiguration $configuration
+     * @return ConfigurationManagerInterface
      *
-     * @return void
+     * @throws ConfigurationManagerNotInjected
      */
-    public function setConfiguration(ExportDbConfiguration $configuration): void
+    private function getConfigurationManager(): ConfigurationManagerInterface
     {
-        $this->configuration = $configuration;
+        if (!$this->configurationManager) {
+            throw ConfigurationManagerNotInjected::create();
+        }
+
+        return $this->configurationManager;
     }
 
     /**
-     * @param string      $table
-     * @param string      $path
-     * @param string|null $fileNamePrefix
-     *
-     * @throws ConnectionNotInjected
-     * @throws Exception
+     * @inheritDoc
      */
-    public function dumpTable(string $table, string $path, ?string $fileNamePrefix = '10'): void
+    public function setConfigurationManager(ConfigurationManagerInterface $configurationManager): void
     {
-        $filePath = $path . '/' . $this->getNewTableFileName($table, $fileNamePrefix);
-        $sql = "INSERT INTO $table VALUES" . PHP_EOL;
+        $this->configurationManager = $configurationManager;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function dumpTable(string $tableName, string $dir, array $tableConfig = [], string $fileNamePrefix = '10'): void
+    {
+        $dir = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
+        $sql = "INSERT INTO $tableName VALUES" . PHP_EOL;
         $where = '';
 
-        $percent = $this->getPercent($table);
+        $percent = $this->getConfigurationManager()->getTablePercentage($tableName, $tableConfig);
         if ($percent && $percent < 1) {
             $where = " WHERE RANDOM() < $percent";
         }
 
-        $requestTable = "SELECT * FROM $table".$where;
+        $requestTable = "SELECT * FROM $tableName".$where;
         $haveResult = false;
         foreach ($this->getConnection()->iterateNumeric($requestTable) as $row) {
             $haveResult = true;
             // Export previous row to file.
-            $this->filesystem->appendToFile($filePath, $sql);
+            $this->filesystem->appendToFile($dir, $sql);
             $sql = '';
 
             // Prepare current row for export.
@@ -124,77 +142,20 @@ class PostgresDataExtractor implements
         // Export last row to file.
         if ($haveResult) {
             $sql = rtrim(rtrim($sql), ',') . ';';
-            $this->filesystem->appendToFile($filePath, $sql);
+            $this->filesystem->appendToFile($dir, $sql);
         }
     }
 
     /**
-     * Can be table dumped.
-     *
-     * @param string $table
-     *
-     * @return bool
-     *
-     * @throws Exception
+     * @inheritDoc
      */
-    public function canTableBeDumped(string $table): bool
+    public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
     {
-        return (bool) $this->getPercent($table);
+        return $this->getConfigurationManager()->canTableBeDumped($tableName, $tableConfig);
     }
 
     /**
-     * Return db connection.
-     *
-     * @return Connection
-     *
-     * @throws ConnectionNotInjected
-     */
-    private function getConnection(): Connection
-    {
-        if ($this->connection === null) {
-            throw ConnectionNotInjected::create();
-        }
-
-        return $this->connection;
-    }
-
-    /**
-     * Get table dump percent.
-     *
-     * @param string $table
-     *
-     * @return float
-     *   How much of table contents should be dumped - a value from 0 to 1,
-     *   where 1 stands for 100%.
-     *   If table is not listed in database.tables section of the config file
-     *   then we assume that this table should be fully dumped (1 is returned).
-     */
-    private function getPercent(string $table): float
-    {
-        $configTables = $this->configuration->getTables();
-        $percent = NULL;
-
-        foreach ($configTables as $configTableKey => $configTableValue) {
-            if (is_numeric($configTableValue) && $configTableKey == $table) {
-                $percent = (float) $configTableValue;
-            }
-            elseif (!empty($configTableValue['table']) && $configTableValue['table'] === $table) {
-                $percent = (float) ($configTableValue['get'] ?? 0);
-            }
-            elseif (!empty($configTableValue['table_regex']) && preg_match($configTableValue['table_regex'], $table)) {
-                $percent = (float) ($configTableValue['get'] ?? 0);
-            }
-
-            if ($percent) {
-                break;
-            }
-        }
-
-        return $percent ?? 1;
-    }
-
-    /**
-     * Get new Table file name
+     * Get new Table file name.
      *
      * @param string $name
      * @param string $prefix

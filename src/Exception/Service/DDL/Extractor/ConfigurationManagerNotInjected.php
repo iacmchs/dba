@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Exception\Service\DDL\Extractor;
 
-class ConnectionNotInjected extends \Exception
+class ConfigurationManagerNotInjected extends \Exception
 {
     public static function create(): self
     {
-        return new self("DB connection not injected.");
+        return new self("Configuration manager not injected.");
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Configuration\ExportDbConfiguration;
-use App\Configuration\ExportDbConfigurationInterface;
+use App\Configuration\ConfigurationManager;
+use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\DsnNotValidException;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
@@ -43,9 +43,9 @@ class ExportDbCommand extends Command
     /**
      * The db export configuration.
      *
-     * @var \App\Configuration\ExportDbConfigurationInterface
+     * @var \App\Configuration\ConfigurationManagerInterface
      */
-    private ExportDbConfigurationInterface $configuration;
+    private ConfigurationManagerInterface $configurationManager;
 
     /**
      * The io object.
@@ -126,7 +126,7 @@ class ExportDbCommand extends Command
             // Initialize some variables.
             $this->io = new SymfonyStyle($input, $output);
             $this->connection = $this->connector->create($dsn);
-            $this->configuration =  new ExportDbConfiguration($configPath);
+            $this->configurationManager =  new ConfigurationManager($configPath);
             $folderName = $this->getNewDumpFolderName($this->connection->getDatabase());
             $this->dumpPath = $this->getDumpFolderPath($folderName);
             $this->createDumpFolder($this->dumpPath);
@@ -187,18 +187,19 @@ class ExportDbCommand extends Command
      */
     public function dumpTables()
     {
-        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configuration);
+        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager);
         $tables = $this->connection->createSchemaManager()->listTableNames();
         sort($tables);
 
-        foreach ($tables as $table) {
-            if ($dataExtractor->canTableBeDumped($table)) {
-                $this->write("Exporting $table...");
-                $dataExtractor->dumpTable($table, $this->dumpPath);
+        foreach ($tables as $tableName) {
+            $tableConfig = $this->configurationManager->getTableConfig($tableName);
+            if ($dataExtractor->canTableBeDumped($tableName, $tableConfig)) {
+                $this->write("Exporting $tableName...");
+                $dataExtractor->dumpTable($tableName, $this->dumpPath, $tableConfig);
                 $this->writeln(' done.', FALSE);
             }
             else {
-                $this->writeln("Skipping $table.");
+                $this->writeln("Skipping $tableName.");
             }
         }
     }

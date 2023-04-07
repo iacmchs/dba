@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\DDL;
 
-use App\Configuration\ExportDbConfiguration;
+use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFound;
@@ -74,14 +74,14 @@ class ExtractorFactory
      * Create db data extractor based on db connection.
      *
      * @param Connection            $connection
-     * @param ExportDbConfiguration $configuration
+     * @param ConfigurationManagerInterface $configurationManager
      *
      * @return DbDataExtractorInterface
      *
      * @throws DataExtractorNotFoundException
      * @throws InvalidExtractorInterfaceException
      */
-    public function createDataExtractor(Connection $connection, ExportDbConfiguration $configuration): DbDataExtractorInterface
+    public function createDataExtractor(Connection $connection, ConfigurationManagerInterface $configurationManager): DbDataExtractorInterface
     {
         if (!isset($this->extractors[$connection->getDriver()::class][DbDataExtractorInterface::class])) {
             throw DataExtractorNotFoundException::byDbDriverName($connection->getDriver()::class);
@@ -94,7 +94,7 @@ class ExtractorFactory
         }
 
         $extractor->setDbConnection($connection);
-        $extractor->setConfiguration($configuration);
+        $extractor->setConfigurationManager($configurationManager);
 
         return $extractor;
     }
