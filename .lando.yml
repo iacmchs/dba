@@ -34,10 +34,6 @@ tooling:
     cmd: php
   composer:
     service: appserver
-  test:
-    service: appserver
-    cmd: composer test
-    description: 'Run phpunit'
   phpdebug:
     service: appserver
     cmd: php
