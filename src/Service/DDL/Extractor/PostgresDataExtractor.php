@@ -105,17 +105,12 @@ class PostgresDataExtractor implements
 
         $filePath = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
         $sql = "INSERT INTO $tableName VALUES" . PHP_EOL;
-        $where = '';
 
-        $percent = $this->getConfigurationManager()->getTablePercentage($tableName, $tableConfig);
-        if ($percent && $percent < 1) {
-            $where = " WHERE RANDOM() < $percent";
-        }
-
-        $requestTable = "SELECT * FROM $tableName".$where;
+        $query = $this->getDataSelectQuery($tableConfig);
         $needSaveAfterEachRow = $tableConfig['export_method'] === 'row';
         $hasResult = false;
-        foreach ($this->getConnection()->iterateNumeric($requestTable) as $row) {
+
+        foreach ($this->getConnection()->iterateNumeric($query) as $row) {
             $hasResult = true;
 
             // Export previous row to file.
@@ -158,6 +153,50 @@ class PostgresDataExtractor implements
                 $this->filesystem->dumpFile($filePath, $sql);
             }
         }
+    }
+
+    /**
+     * Returns select query to get data from table.
+     *
+     * @param array $tableConfig
+     *   Table config.
+     *
+     * @return string
+     *   SQL query to get data from table.
+     */
+    private function getDataSelectQuery(array $tableConfig): string
+    {
+        $query = 'SELECT * FROM ' . $tableConfig['table'];
+
+        $where = [];
+        foreach ($tableConfig['where'] as $fieldName => $condition) {
+            if (!is_array($condition)) {
+                $condition = [$condition, '='];
+            }
+
+            switch ($condition[1]) {
+                case 'expression':
+                    $where[] = $condition[0];
+                    break;
+
+                default:
+                    if (!str_starts_with((string) $condition[0], '(')) {
+                        $condition[0] = "'" . $condition[0] . "'";
+                    }
+
+                    $where[] = "$fieldName {$condition[1]} {$condition[0]}";
+            };
+        }
+
+        if ($tableConfig['get'] < 1) {
+            $where[] = 'RANDOM() < ' . $tableConfig['get'];
+        }
+
+        if ($where) {
+            $query .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        return $query;
     }
 
     /**
