@@ -120,27 +120,7 @@ class PostgresDataExtractor implements
             }
 
             // Prepare current row for export.
-            $values = '';
-            foreach ($row as $key => $item) {
-                if (null === $item) {
-                    $values .= 'null';
-                } elseif (is_bool($item)) {
-                    $values .= $item ? 'true' : 'false';
-                } elseif (is_numeric($item)) {
-                    $values .= $item;
-                } elseif (is_resource($item)) {
-                    $item = stream_get_contents($item);
-                    $values .= "'" . pg_escape_bytea($item) . "'";
-                } else {
-                    $values .= "'" . pg_escape_string((string) $item) . "'";
-                }
-
-                if (array_key_last($row) !== $key) {
-                    $values .= ',';
-                }
-            }
-
-            $sql .= "($values)," . PHP_EOL;
+            $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
         }
 
         // Export last row (or all rows) to file.
@@ -162,7 +142,7 @@ class PostgresDataExtractor implements
      *   Table config.
      *
      * @return string
-     *   SQL query to get data from table.
+     *   The SELECT sql query to get data from table.
      */
     private function getDataSelectQuery(array $tableConfig): string
     {
@@ -197,6 +177,42 @@ class PostgresDataExtractor implements
         }
 
         return $query;
+    }
+
+    /**
+     * Returns values for insert query.
+     *
+     * @param array $row
+     *   Table row data to insert.
+     *
+     * @return string
+     *   The part of the INSERT sql query that comes after this:
+     *   INSERT INTO table VALUES ...
+     */
+    private function getValuesQuery(array $row): string
+    {
+        $values = '';
+
+        foreach ($row as $key => $item) {
+            if (null === $item) {
+                $values .= 'null';
+            } elseif (is_bool($item)) {
+                $values .= $item ? 'true' : 'false';
+            } elseif (is_numeric($item)) {
+                $values .= $item;
+            } elseif (is_resource($item)) {
+                $item = stream_get_contents($item);
+                $values .= "'" . pg_escape_bytea($item) . "'";
+            } else {
+                $values .= "'" . pg_escape_string((string) $item) . "'";
+            }
+
+            if (array_key_last($row) !== $key) {
+                $values .= ',';
+            }
+        }
+
+        return "($values)";
     }
 
     /**
