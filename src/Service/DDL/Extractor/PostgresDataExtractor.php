@@ -99,7 +99,11 @@ class PostgresDataExtractor implements
      */
     public function dumpTable(string $tableName, string $dir, array $tableConfig = [], string $fileNamePrefix = '10'): void
     {
-        $dir = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
+        if (!$tableConfig) {
+            $tableConfig = $this->getConfigurationManager()->getTableConfig($tableName);
+        }
+
+        $filePath = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
         $sql = "INSERT INTO $tableName VALUES" . PHP_EOL;
         $where = '';
 
@@ -109,40 +113,50 @@ class PostgresDataExtractor implements
         }
 
         $requestTable = "SELECT * FROM $tableName".$where;
-        $haveResult = false;
+        $needSaveAfterEachRow = $tableConfig['export_method'] === 'row';
+        $hasResult = false;
         foreach ($this->getConnection()->iterateNumeric($requestTable) as $row) {
-            $haveResult = true;
+            $hasResult = true;
+
             // Export previous row to file.
-            $this->filesystem->appendToFile($dir, $sql);
-            $sql = '';
+            if ($needSaveAfterEachRow) {
+                $this->filesystem->appendToFile($filePath, $sql);
+                $sql = '';
+            }
 
             // Prepare current row for export.
+            $values = '';
             foreach ($row as $key => $item) {
                 if (null === $item) {
-                    $sql .= 'null';
+                    $values .= 'null';
                 } elseif (is_bool($item)) {
-                    $sql .= $item ? 'true' : 'false';
+                    $values .= $item ? 'true' : 'false';
                 } elseif (is_numeric($item)) {
-                    $sql .= $item;
+                    $values .= $item;
                 } elseif (is_resource($item)) {
                     $item = stream_get_contents($item);
-                    $sql .= "'" . pg_escape_bytea($item) . "'";
+                    $values .= "'" . pg_escape_bytea($item) . "'";
                 } else {
-                    $sql .= "'" . pg_escape_string((string) $item) . "'";
+                    $values .= "'" . pg_escape_string((string) $item) . "'";
                 }
 
                 if (array_key_last($row) !== $key) {
-                    $sql .= ',';
+                    $values .= ',';
                 }
             }
 
-            $sql = "($sql)," . PHP_EOL;
+            $sql .= "($values)," . PHP_EOL;
         }
 
-        // Export last row to file.
-        if ($haveResult) {
+        // Export last row (or all rows) to file.
+        if ($hasResult) {
             $sql = rtrim(rtrim($sql), ',') . ';';
-            $this->filesystem->appendToFile($dir, $sql);
+            if ($needSaveAfterEachRow) {
+                $this->filesystem->appendToFile($filePath, $sql);
+            }
+            else {
+                $this->filesystem->dumpFile($filePath, $sql);
+            }
         }
     }
 
