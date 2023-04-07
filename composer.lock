@@ -3382,11 +3382,11 @@
         },
         {
             "name": "iac/giho",
-            "version": "1.0.1",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "git@gitlab.iac.mchs.ru:iac/giho.git",
-                "reference": "b48e0dcf488a9d5e61cd0ee6a8f29bdcaa2729ba"
+                "reference": "1c1c2a48053692e591960d060cde280ea57f8a5d"
             },
             "require": {
                 "drupal/coder": "^8.3",
@@ -3410,7 +3410,7 @@
                 }
             ],
             "description": "This is a kit that is used to simplify development workflow.",
-            "time": "2023-03-20T11:17:37+00:00"
+            "time": "2023-04-07T10:15:18+00:00"
         },
         {
             "name": "masterminds/html5",
