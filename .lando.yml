@@ -8,11 +8,6 @@ services:
     build_as_root:
       - apt update
       - apt install nano mc -y
-    build:
-      - composer global require escapestudios/symfony2-coding-standard
-      - $HOME/.composer/vendor/bin/phpcs --config-set installed_paths $HOME/.composer/vendor/escapestudios/symfony2-coding-standard
-      - echo 'export PATH="$PATH:$HOME/.config/composer/vendor/bin"' >> ~/.profile
-      - sh .gitlab/_scripts/init-hooks.sh
 tooling:
   phpcs:branch:
     service: appserver
