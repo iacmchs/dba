@@ -8,6 +8,8 @@ services:
     build_as_root:
       - apt update
       - apt install nano mc -y
+      - apt install libpq-dev -y
+      - docker-php-ext-install pdo pdo_pgsql
 tooling:
   phpcs:branch:
     service: appserver
