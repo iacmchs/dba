@@ -2,6 +2,7 @@
 
 namespace App\Configuration;
 
+use App\Exception\ConfigFileNotFoundException;
 use Symfony\Component\Yaml\Yaml;
 
 class ConfigurationManager implements ConfigurationManagerInterface
@@ -26,7 +27,12 @@ class ConfigurationManager implements ConfigurationManagerInterface
      */
     public function load(string $filePath): void
     {
-        $this->config = Yaml::parse(file_get_contents($filePath));
+        $config = Yaml::parse(file_get_contents($filePath));
+        if (!$config) {
+            throw new ConfigFileNotFoundException($filePath);
+        }
+
+        $this->config = $config;
     }
 
     /**
