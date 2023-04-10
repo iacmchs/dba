@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exception\Service\DDL\Extractor;
 
-class ConfigurationManagerNotInjected extends \Exception
+class ConfigurationManagerNotInjectedException extends \Exception
 {
     public static function create(): self
     {

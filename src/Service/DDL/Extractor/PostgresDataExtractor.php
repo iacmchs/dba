@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Service\DDL\Extractor;
 
 use App\Configuration\ConfigurationManagerInterface;
-use App\Exception\Service\DDL\Extractor\ConfigurationManagerNotInjected;
-use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
+use App\Exception\Service\DDL\Extractor\ConfigurationManagerNotInjectedException;
+use App\Exception\Service\DDL\Extractor\ConnectionNotInjectedException;
 use App\Service\DbConnectionSetterInterface;
 use App\Service\DDL\DbDataExtractorInterface;
 use Doctrine\DBAL\Connection;
@@ -36,62 +36,6 @@ class PostgresDataExtractor implements
      */
     public function __construct(private readonly Filesystem $filesystem)
     {
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getDbDriver(): string
-    {
-        return Driver::class;
-    }
-
-    /**
-     * Returns db connection.
-     *
-     * @return Connection
-     *
-     * @throws ConnectionNotInjected
-     */
-    private function getConnection(): Connection
-    {
-        if (!$this->connection) {
-            throw ConnectionNotInjected::create();
-        }
-
-        return $this->connection;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setDbConnection(Connection $connection): void
-    {
-        $this->connection = $connection;
-    }
-
-    /**
-     * Returns configuration manager.
-     *
-     * @return ConfigurationManagerInterface
-     *
-     * @throws ConfigurationManagerNotInjected
-     */
-    private function getConfigurationManager(): ConfigurationManagerInterface
-    {
-        if (!$this->configurationManager) {
-            throw ConfigurationManagerNotInjected::create();
-        }
-
-        return $this->configurationManager;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setConfigurationManager(ConfigurationManagerInterface $configurationManager): void
-    {
-        $this->configurationManager = $configurationManager;
     }
 
     /**
@@ -128,11 +72,74 @@ class PostgresDataExtractor implements
             $sql = rtrim(rtrim($sql), ',') . ';';
             if ($needSaveAfterEachRow) {
                 $this->filesystem->appendToFile($filePath, $sql);
-            }
-            else {
+            } else {
                 $this->filesystem->dumpFile($filePath, $sql);
             }
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
+    {
+        return $this->getConfigurationManager()->canTableBeDumped($tableName, $tableConfig);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDbDriver(): string
+    {
+        return Driver::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDbConnection(Connection $connection): void
+    {
+        $this->connection = $connection;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setConfigurationManager(ConfigurationManagerInterface $configurationManager): void
+    {
+        $this->configurationManager = $configurationManager;
+    }
+
+    /**
+     * Returns db connection.
+     *
+     * @return Connection
+     *
+     * @throws ConnectionNotInjectedException
+     */
+    private function getConnection(): Connection
+    {
+        if (!$this->connection) {
+            throw ConnectionNotInjectedException::create();
+        }
+
+        return $this->connection;
+    }
+
+    /**
+     * Returns configuration manager.
+     *
+     * @return ConfigurationManagerInterface
+     *
+     * @throws ConfigurationManagerNotInjectedException
+     */
+    private function getConfigurationManager(): ConfigurationManagerInterface
+    {
+        if (!$this->configurationManager) {
+            throw ConfigurationManagerNotInjectedException::create();
+        }
+
+        return $this->configurationManager;
     }
 
     /**
@@ -216,14 +223,6 @@ class PostgresDataExtractor implements
     }
 
     /**
-     * @inheritDoc
-     */
-    public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
-    {
-        return $this->getConfigurationManager()->canTableBeDumped($tableName, $tableConfig);
-    }
-
-    /**
      * Get new Table file name.
      *
      * @param string $name
@@ -235,6 +234,6 @@ class PostgresDataExtractor implements
     {
         $name = str_replace('"', '', $name);
 
-        return ($prefix ? $prefix.'_' : '').$name.'.sql';
+        return ($prefix ? $prefix . '_' : '') . $name . '.sql';
     }
 }

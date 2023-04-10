@@ -9,7 +9,7 @@ use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\DsnNotValidException;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
-use App\Exception\Service\DDL\StructureExtractorNotFound;
+use App\Exception\Service\DDL\StructureExtractorNotFoundException;
 use App\Infrastructure\DBConnector;
 use App\Service\DDL\ExtractorFactory;
 use Doctrine\DBAL\Connection;
@@ -113,7 +113,7 @@ class ExportDbCommand extends Command
      * @throws DsnNotValidException
      * @throws Exception
      * @throws InvalidExtractorInterfaceException
-     * @throws StructureExtractorNotFound
+     * @throws StructureExtractorNotFoundException
      * @throws DataExtractorNotFoundException
      */
     public function execute(InputInterface $input, OutputInterface $output): int
@@ -153,7 +153,7 @@ class ExportDbCommand extends Command
             return Command::FAILURE;
         }
 
-        $this->writeln('', FALSE);
+        $this->writeln('', false);
         $this->writeln('Woohoo!');
         $this->io->success('Export completed.');
 
@@ -166,14 +166,14 @@ class ExportDbCommand extends Command
      * @return void
      *
      * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
-     * @throws \App\Exception\Service\DDL\StructureExtractorNotFound
+     * @throws \App\Exception\Service\DDL\StructureExtractorNotFoundException
      */
     public function dumpStructure(): void
     {
         $this->write("Exporting DB structure...");
         $structureExtractor = $this->extractorFactory->createStructureExtractor($this->connection);
         $structureExtractor->dumpStructure($this->dumpPath);
-        $this->writeln(' done.', FALSE);
+        $this->writeln(' done.', false);
     }
 
     /**
@@ -196,9 +196,8 @@ class ExportDbCommand extends Command
             if ($dataExtractor->canTableBeDumped($tableName, $tableConfig)) {
                 $this->write("Exporting $tableName...");
                 $dataExtractor->dumpTable($tableName, $this->dumpPath, $tableConfig);
-                $this->writeln(' done.', FALSE);
-            }
-            else {
+                $this->writeln(' done.', false);
+            } else {
                 $this->writeln("Skipping $tableName.");
             }
         }
@@ -226,7 +225,7 @@ class ExportDbCommand extends Command
      */
     private function getDumpFolderPath(string $folderName): string
     {
-        return $this->databaseDumpFolder.'/'.$folderName;
+        return $this->databaseDumpFolder . '/' . $folderName;
     }
 
     /**
@@ -239,7 +238,7 @@ class ExportDbCommand extends Command
      */
     private function getNewDumpFolderName(string $name): string
     {
-        return $name.'_'.date('Ymd_His');
+        return $name . '_' . date('Ymd_His');
     }
 
     /**
@@ -252,7 +251,8 @@ class ExportDbCommand extends Command
      *
      * @return void
      */
-    private function write(string $message, bool $withDuration = TRUE) {
+    private function write(string $message, bool $withDuration = true)
+    {
         $this->io->write(($withDuration ? '[' . $this->getDurationFormatted() . '] ' : '') . $message);
     }
 
@@ -266,7 +266,8 @@ class ExportDbCommand extends Command
      *
      * @return void
      */
-    private function writeln(string $message, bool $withDuration = TRUE) {
+    private function writeln(string $message, bool $withDuration = true)
+    {
         $this->write($message, $withDuration);
         $this->io->writeln('');
     }

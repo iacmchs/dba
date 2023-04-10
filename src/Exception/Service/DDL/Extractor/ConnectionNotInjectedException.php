@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exception\Service\DDL\Extractor;
 
-class ConnectionNotInjected extends \Exception
+class ConnectionNotInjectedException extends \Exception
 {
     public static function create(): self
     {

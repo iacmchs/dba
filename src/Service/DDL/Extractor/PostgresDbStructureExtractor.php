@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\DDL\Extractor;
 
-use App\Exception\Service\DDL\Extractor\ConnectionNotInjected;
+use App\Exception\Service\DDL\Extractor\ConnectionNotInjectedException;
 use App\Service\DbConnectionSetterInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
@@ -56,7 +56,7 @@ class PostgresDbStructureExtractor implements
      *
      * @return void
      *
-     * @throws ConnectionNotInjected
+     * @throws ConnectionNotInjectedException
      * @throws Exception
      */
     public function dumpStructure(string $path): void
@@ -66,16 +66,16 @@ class PostgresDbStructureExtractor implements
         $command = [
             $this->pgDump,
             $database,
-            '-U '.$params['user'],
-            '-h '.$params['host'],
-            '-p '.$params['port'],
+            '-U ' . $params['user'],
+            '-h ' . $params['host'],
+            '-p ' . $params['port'],
             '-s',
         ];
 
         $generateFile = $this->getNewStructureFileName($database);
 
         $commandLine = implode(' ', $command);
-        $commandLine .= ' > '.$path.'/'.$generateFile;
+        $commandLine .= ' > ' . $path . '/' . $generateFile;
 
         Process::fromShellCommandline($commandLine)->run();
     }
@@ -85,12 +85,12 @@ class PostgresDbStructureExtractor implements
      *
      * @return Connection
      *
-     * @throws ConnectionNotInjected
+     * @throws ConnectionNotInjectedException
      */
     private function getConnection(): Connection
     {
         if ($this->conn === null) {
-            throw ConnectionNotInjected::create();
+            throw ConnectionNotInjectedException::create();
         }
 
         return $this->conn;
@@ -105,6 +105,6 @@ class PostgresDbStructureExtractor implements
      */
     private function getNewStructureFileName(string $name): string
     {
-        return '00_'.$name.'_structure.sql';
+        return '00_' . $name . '_structure.sql';
     }
 }

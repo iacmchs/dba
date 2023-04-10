@@ -7,7 +7,7 @@ namespace App\Service\DDL;
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
-use App\Exception\Service\DDL\StructureExtractorNotFound;
+use App\Exception\Service\DDL\StructureExtractorNotFoundException;
 use App\Service\DbConnectionSetterInterface;
 use App\Service\DDL\Extractor\DbStructureExtractorInterface;
 use Doctrine\DBAL\Connection;
@@ -51,12 +51,12 @@ class ExtractorFactory
      * @return DbStructureExtractorInterface
      *
      * @throws InvalidExtractorInterfaceException
-     * @throws StructureExtractorNotFound
+     * @throws StructureExtractorNotFoundException
      */
     public function createStructureExtractor(Connection $connection): DbStructureExtractorInterface
     {
         if (!isset($this->extractors[$connection->getDriver()::class][DbStructureExtractorInterface::class])) {
-            throw StructureExtractorNotFound::byDbDriverName($connection->getDriver()::class);
+            throw StructureExtractorNotFoundException::byDbDriverName($connection->getDriver()::class);
         }
 
         /** @var DbStructureExtractorInterface $extractor */

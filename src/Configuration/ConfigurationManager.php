@@ -52,15 +52,13 @@ class ConfigurationManager implements ConfigurationManagerInterface
         $config = [];
 
         foreach ($configTables as $configTableKey => $configTableValue) {
-            if ($configTableKey == $tableName) {
+            if ($configTableKey === $tableName) {
                 $config = is_numeric($configTableValue)
                     ? ['get' => (float) $configTableValue]
                     : $configTableValue;
-            }
-            elseif (!empty($configTableValue['table']) && $configTableValue['table'] === $tableName) {
+            } elseif (!empty($configTableValue['table']) && $configTableValue['table'] === $tableName) {
                 $config = $configTableValue;
-            }
-            elseif (!empty($configTableValue['table_regex']) && preg_match($configTableValue['table_regex'], $tableName)) {
+            } elseif (!empty($configTableValue['table_regex']) && preg_match($configTableValue['table_regex'], $tableName)) {
                 $config = $configTableValue;
             }
 
