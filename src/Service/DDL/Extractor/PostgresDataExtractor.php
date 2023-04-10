@@ -22,6 +22,12 @@ class PostgresDataExtractor implements
     DbConnectionSetterInterface,
     ConfigurationManagerSetterInterface
 {
+
+    /**
+     * The maximum number of rows that a single INSERT query may have.
+     */
+    const INSERT_ROWS_MAX = 300;
+
     /**
      * DB connection.
      *
@@ -48,13 +54,15 @@ class PostgresDataExtractor implements
         }
 
         $filePath = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
-        $sql = "INSERT INTO $tableName VALUES" . PHP_EOL;
+        $sql = $insertSql = "INSERT INTO $tableName VALUES" . PHP_EOL;
 
         $query = $this->getDataSelectQuery($tableConfig);
         $needSaveAfterEachRow = $tableConfig['export_method'] === 'row';
         $hasResult = false;
+        $i = 0;
 
         foreach ($this->getConnection()->iterateNumeric($query) as $row) {
+            $i++;
             $hasResult = true;
 
             // Export previous row to file.
@@ -63,13 +71,20 @@ class PostgresDataExtractor implements
                 $sql = '';
             }
 
+            // Split the insert query into parts to make it to have
+            // 300 rows max to optimize performance on DB import.
+            if ($i % self::INSERT_ROWS_MAX === 0) {
+                $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
+                $sql .= $insertSql;
+            }
+
             // Prepare current row for export.
             $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
         }
 
         // Export last row (or all rows) to file.
         if ($hasResult) {
-            $sql = rtrim(rtrim($sql), ',') . ';';
+            $sql = $this->removeTrailingComma($sql) . ';';
             if ($needSaveAfterEachRow) {
                 $this->filesystem->appendToFile($filePath, $sql);
             } else {
@@ -220,6 +235,20 @@ class PostgresDataExtractor implements
         }
 
         return "($values)";
+    }
+
+    /**
+     * Removes trailing comma from the end of the query.
+     *
+     * @param string $query
+     *   The sql query.
+     *
+     * @return string
+     *   The sql query without trailing comma and spacing.
+     */
+    private function removeTrailingComma(string $query): string
+    {
+        return rtrim(rtrim($query), ',');
     }
 
     /**
