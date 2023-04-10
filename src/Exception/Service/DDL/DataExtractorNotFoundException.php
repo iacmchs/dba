@@ -21,6 +21,6 @@ class DataExtractorNotFoundException extends Exception
      */
     public static function byDbDriverName(string $dbDriverName): self
     {
-        return new self(sprintf("There is no data extractor with db driver %s", $dbDriverName));
+        return new self(sprintf("There is no data extractor with db driver '%s'.", $dbDriverName));
     }
 }

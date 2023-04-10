@@ -9,11 +9,11 @@ use JetBrains\PhpStorm\Pure;
 
 class DsnNotValidException extends Exception
 {
-    private const MESSAGE = 'DSN %s is not valid';
+    private const MESSAGE = "DSN '%s' is not valid.";
 
     #[Pure]
-    public function __construct(string $message)
+    public function __construct(string $dsn)
     {
-        parent::__construct(sprintf(self::MESSAGE, $message));
+        parent::__construct(sprintf(self::MESSAGE, $dsn));
     }
 }
