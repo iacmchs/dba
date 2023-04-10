@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Configuration;
 
 interface ConfigurationManagerInterface
@@ -23,6 +25,14 @@ interface ConfigurationManagerInterface
     public function getTables(): array;
 
     /**
+     * Returns anonymization config.
+     *
+     * @return array
+     *   The database.anonymization section from project config.
+     */
+    public function getAnonymization(): array;
+
+    /**
      * Returns table dump config.
      *
      * @param string $tableName
@@ -33,6 +43,17 @@ interface ConfigurationManagerInterface
      *   available parameters.
      */
     public function getTableConfig(string $tableName): array;
+
+    /**
+     * Returns table anonymyzation config.
+     *
+     * @param string $tableName
+     *   DB table name.
+     *
+     * @return array
+     *   List of anonymization rules that can be used for specified table.
+     */
+    public function getTableAnonymization(string $tableName): array;
 
     /**
      * Get table data dump percentage.

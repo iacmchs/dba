@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Anonymization\Anonymizer;
 use App\Configuration\ConfigurationManager;
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\DsnNotValidException;
@@ -76,8 +77,12 @@ class ExportDbCommand extends Command
      * @param DBConnector      $connector
      * @param Filesystem       $filesystem
      */
-    public function __construct(private readonly string $databaseDumpFolder, private readonly ExtractorFactory $extractorFactory, private readonly DBConnector $connector, private readonly Filesystem $filesystem)
-    {
+    public function __construct(
+        private readonly string $databaseDumpFolder,
+        private readonly ExtractorFactory $extractorFactory,
+        private readonly DBConnector $connector,
+        private readonly Filesystem $filesystem
+    ){
         parent::__construct();
         $this->timeStart = time();
     }
@@ -187,7 +192,8 @@ class ExportDbCommand extends Command
      */
     public function dumpTables()
     {
-        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager);
+        $anonymizer = new Anonymizer($this->configurationManager);
+        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager, $anonymizer);
         $tables = $this->connection->createSchemaManager()->listTableNames();
         sort($tables);
 

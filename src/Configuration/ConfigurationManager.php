@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Configuration;
 
 use App\Exception\ConfigFileNotFoundException;
@@ -46,6 +48,14 @@ class ConfigurationManager implements ConfigurationManagerInterface
     /**
      * @inheritDoc
      */
+    public function getAnonymization(): array
+    {
+        return $this->config['database']['anonymization'] ?? [];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getTableConfig(string $tableName): array
     {
         $configTables = $this->getTables();
@@ -76,6 +86,38 @@ class ConfigurationManager implements ConfigurationManagerInterface
         ];
 
         return $config;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getTableAnonymization(string $tableName): array {
+        $res = [];
+        $anonymizationRules = $this->getAnonymization();
+
+        // Go through all anonymization rules and find ones for specified table.
+        foreach ($anonymizationRules as $curTableName => $anonymizationRule) {
+            $matches = FALSE;
+
+            if ($curTableName === $tableName) {
+                $matches = TRUE;
+            } elseif (($anonymizationRule['table'] ?? '') === $tableName) {
+                $matches = TRUE;
+            } elseif (($anonymizationRule['table_regex'] ?? '') && preg_match($anonymizationRule['table_regex'], $tableName)) {
+                $matches = TRUE;
+            }
+
+            if ($matches) {
+                $res[$curTableName] = $anonymizationRule + [
+                    'table' => $curTableName,
+                    'table_regex' => '',
+                    'where' => [],
+                    'fields' => [],
+                ];
+            }
+        }
+
+        return $res;
     }
 
     /**
