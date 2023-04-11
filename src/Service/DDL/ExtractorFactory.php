@@ -79,6 +79,7 @@ class ExtractorFactory
      * @param \App\Anonymization\AnonymizerInterface $anonymizer
      *
      * @return \App\Service\DDL\DbDataExtractorInterface
+     *
      * @throws \App\Exception\Service\DDL\DataExtractorNotFoundException
      * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
      */
@@ -86,8 +87,7 @@ class ExtractorFactory
         Connection $connection,
         ConfigurationManagerInterface $configurationManager,
         AnonymizerInterface $anonymizer
-    ): DbDataExtractorInterface
-    {
+    ): DbDataExtractorInterface {
         if (!isset($this->extractors[$connection->getDriver()::class][DbDataExtractorInterface::class])) {
             throw DataExtractorNotFoundException::byDbDriverName($connection->getDriver()::class);
         }

@@ -82,7 +82,7 @@ class ExportDbCommand extends Command
         private readonly ExtractorFactory $extractorFactory,
         private readonly DBConnector $connector,
         private readonly Filesystem $filesystem
-    ){
+    ) {
         parent::__construct();
         $this->timeStart = time();
     }

@@ -60,7 +60,7 @@ class Anonymizer implements AnonymizerInterface
      */
     private function shouldAnonymizationRuleBeApplied(array $anonymizationRule, array $row): bool
     {
-        $res = TRUE;
+        $res = true;
 
         foreach ($anonymizationRule['where'] ?? [] as $fieldName => $condition) {
             if (!is_array($condition)) {
@@ -95,6 +95,8 @@ class Anonymizer implements AnonymizerInterface
      *
      * @return mixed
      *   Anonymized value.
+     *
+     * @throws \App\Exception\UnknownAnonymizationMethodException
      */
     private function applyAnonymization(mixed $anonymization, array $row): mixed
     {
@@ -107,7 +109,7 @@ class Anonymizer implements AnonymizerInterface
             }
 
             return is_null($anonymization) || strtolower($anonymization) === 'null'
-                ? NULL
+                ? null
                 : $anonymization;
         }
 
@@ -121,10 +123,9 @@ class Anonymizer implements AnonymizerInterface
             // If argument contains a method.
             if (is_array($arg)) {
                 $anonymization['args'][$key] = $this->applyAnonymization($arg, $row);
-            }
             // If argument is like `%fieldname` then we need to copy the value
             // of respective field from $row to this argument.
-            elseif (str_starts_with((string) $arg, '%')) {
+            } elseif (str_starts_with((string) $arg, '%')) {
                 $anonymization['args'][$key] = $row[substr($arg, 1)];
             }
         }
@@ -143,6 +144,6 @@ class Anonymizer implements AnonymizerInterface
                 throw new UnknownAnonymizationMethodException($anonymization['method']);
         }
 
-        return $value ?? NULL;
+        return $value ?? null;
     }
 }

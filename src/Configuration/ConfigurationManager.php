@@ -91,20 +91,21 @@ class ConfigurationManager implements ConfigurationManagerInterface
     /**
      * @inheritDoc
      */
-    public function getTableAnonymization(string $tableName): array {
+    public function getTableAnonymization(string $tableName): array
+    {
         $res = [];
         $anonymizationRules = $this->getAnonymization();
 
         // Go through all anonymization rules and find ones for specified table.
         foreach ($anonymizationRules as $curTableName => $anonymizationRule) {
-            $matches = FALSE;
+            $matches = false;
 
             if ($curTableName === $tableName) {
-                $matches = TRUE;
+                $matches = true;
             } elseif (($anonymizationRule['table'] ?? '') === $tableName) {
-                $matches = TRUE;
+                $matches = true;
             } elseif (($anonymizationRule['table_regex'] ?? '') && preg_match($anonymizationRule['table_regex'], $tableName)) {
-                $matches = TRUE;
+                $matches = true;
             }
 
             if ($matches) {
