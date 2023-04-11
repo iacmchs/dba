@@ -78,7 +78,7 @@ class PostgresDataExtractor implements
         $hasResult = false;
         $i = 0;
 
-        foreach ($this->getConnection()->iterateNumeric($query) as $row) {
+        foreach ($this->getConnection()->iterateAssociative($query) as $row) {
             $i++;
             $hasResult = true;
 
