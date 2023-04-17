@@ -12,16 +12,17 @@ namespace App\Exception\Service\DDL;
 
 use Exception;
 
-class StructureExtractorNotFound extends Exception
+class StructureExtractorNotFoundException extends Exception
 {
     /**
      * Create exception instance with a prepared message.
      *
      * @param string $dbDriverName
+     *
      * @return self
      */
     public static function byDbDriverName(string $dbDriverName): self
     {
-        return new self(sprintf("There is no structure extractor with db driver %s", $dbDriverName));
+        return new self(sprintf("There is no structure extractor with db driver '%s'.", $dbDriverName));
     }
 }

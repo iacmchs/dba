@@ -11,7 +11,6 @@ services:
             tags: [ 'app.dbStructureExtractor' ]
         App\Service\DDL\Extractor\DbStructureExtractorInterface:
             bind:
-                $databaseDumpFolder: '%database_dump_folder%'
                 $pgDump: '%pg_dump%'
 
     App\:
@@ -28,3 +27,7 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     Doctrine\DBAL\Tools\DsnParser:
+
+    App\Command\ExportDbCommand:
+        arguments:
+            $databaseDumpFolder: '%database_dump_folder%'

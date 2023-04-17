@@ -1,0 +1,31 @@
+name: 'Fantastic site'
+driver: pgsql
+database:
+  # Any tables that are NOT mentioned here would be fully copied from DB.
+  tables:
+    # Get 1.5% of rows (random) from this table.
+    orders: 0.015
+    # Get 50% of news for the last month from the hottest categories.
+    latest_news:
+      get: 0.5
+      table: content
+      where:
+        type: news
+        created: ['(NOW() - INTERVAL 1 MONTH)', '>=']
+        category_id: ['(5, 18)', 'IN']
+    # Don't copy data from tables whose names match the regex.
+    cache_:
+      table_regex: '/^cache_.*/'
+      get: 0
+    # Get 80% of rows from this table.
+    # The `export_method: row` option means that each row would be immediately
+    # saved to the file during the export.
+    # By default, all selected rows are saved to the file at once to improve
+    # performance and reduce disk usage. But it can cause errors due to
+    # insufficient memory in case if you have super large data dumps or super
+    # low RAM available.
+    # Just keep in mind that this option exists, but try to use default
+    # behavior first.
+    actions:
+      get: 0.8
+      export_method: row
