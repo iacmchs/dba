@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Exception\Service\DDL\Extractor;
+namespace App\Exception\Service\Extractor;
 
 class ConfigurationManagerNotInjectedException extends \Exception
 {

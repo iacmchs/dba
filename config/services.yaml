@@ -7,9 +7,9 @@ services:
         autoconfigure: true
 
     _instanceof:
-        App\Service\DDL\Extractor\DbDriverNameInterface:
+        App\Service\Extractor\DbDriverNameInterface:
             tags: [ 'app.dbStructureExtractor' ]
-        App\Service\DDL\Extractor\DbStructureExtractorInterface:
+        App\Service\Extractor\DbStructureExtractorInterface:
             bind:
                 $pgDump: '%pg_dump%'
 
@@ -20,7 +20,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\Service\DDL\ExtractorFactory:
+    App\Service\Extractor\ExtractorFactory:
         arguments:
             $extractors: !tagged_iterator app.dbStructureExtractor
 
