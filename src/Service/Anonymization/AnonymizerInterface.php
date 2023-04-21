@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Anonymization;
+namespace App\Service\Anonymization;
 
 interface AnonymizerInterface
 {

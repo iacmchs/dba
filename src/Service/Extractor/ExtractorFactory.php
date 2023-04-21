@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Service\DDL;
+namespace App\Service\Extractor;
 
-use App\Anonymization\AnonymizerInterface;
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFoundException;
-use App\Service\DbConnectionSetterInterface;
-use App\Service\DDL\Extractor\DbStructureExtractorInterface;
+use App\Service\Anonymization\AnonymizerInterface;
 use Doctrine\DBAL\Connection;
 use Traversable;
 
@@ -76,9 +74,9 @@ class ExtractorFactory
      *
      * @param \Doctrine\DBAL\Connection $connection
      * @param \App\Configuration\ConfigurationManagerInterface $configurationManager
-     * @param \App\Anonymization\AnonymizerInterface $anonymizer
+     * @param \App\Service\Anonymization\AnonymizerInterface $anonymizer
      *
-     * @return \App\Service\DDL\DbDataExtractorInterface
+     * @return \App\Service\Extractor\DbDataExtractorInterface
      *
      * @throws \App\Exception\Service\DDL\DataExtractorNotFoundException
      * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException

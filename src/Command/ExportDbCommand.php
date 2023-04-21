@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Anonymization\Anonymizer;
 use App\Configuration\ConfigurationManager;
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\DsnNotValidException;
@@ -12,7 +11,8 @@ use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFoundException;
 use App\Infrastructure\DBConnector;
-use App\Service\DDL\ExtractorFactory;
+use App\Service\Anonymization\Anonymizer;
+use App\Service\Extractor\ExtractorFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use PDOException;

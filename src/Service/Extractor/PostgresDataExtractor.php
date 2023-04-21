@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Service\DDL\Extractor;
+namespace App\Service\Extractor;
 
-use App\Anonymization\AnonymizerInterface;
-use App\Anonymization\AnonymizerSetterInterface;
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\Service\DDL\Extractor\AnonymizerNotInjectedException;
 use App\Exception\Service\DDL\Extractor\ConfigurationManagerNotInjectedException;
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjectedException;
-use App\Service\DbConnectionSetterInterface;
-use App\Service\DDL\DbDataExtractorInterface;
+use App\Service\Anonymization\AnonymizerInterface;
+use App\Service\Anonymization\AnonymizerSetterInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
 use Symfony\Component\Filesystem\Filesystem;
@@ -42,7 +40,7 @@ class PostgresDataExtractor implements
     /**
      * Data anonymizer.
      *
-     * @var \App\Anonymization\AnonymizerInterface|null
+     * @var \App\Service\Anonymization\AnonymizerInterface|null
      */
     private ?AnonymizerInterface $anonymizer;
 
@@ -186,7 +184,7 @@ class PostgresDataExtractor implements
     /**
      * Returns configuration manager.
      *
-     * @return \App\Anonymization\AnonymizerInterface
+     * @return \App\Service\Anonymization\AnonymizerInterface
      *
      * @throws \App\Exception\Service\DDL\Extractor\AnonymizerNotInjectedException
      */

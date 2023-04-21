@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Anonymization;
+namespace App\Service\Anonymization;
 
 /**
  * Db data anonymizer setter interface.
@@ -12,7 +12,7 @@ interface AnonymizerSetterInterface
     /**
      * Set anonymizer for data extractor.
      *
-     * @param \App\Anonymization\AnonymizerInterface $anonymizer
+     * @param \App\Service\Anonymization\AnonymizerInterface $anonymizer
      *   Data anonymizer.
      *
      * @return void

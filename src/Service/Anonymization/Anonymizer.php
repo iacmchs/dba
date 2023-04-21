@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Anonymization;
+namespace App\Service\Anonymization;
 
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\UnknownAnonymizationMethodException;

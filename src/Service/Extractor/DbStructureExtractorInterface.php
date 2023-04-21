@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service\DDL\Extractor;
+namespace App\Service\Extractor;
 
 /**
  * Interface describe an db structure extractor.
