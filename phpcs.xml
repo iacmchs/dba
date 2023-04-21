@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <ruleset name="PHPCS Symfony ruleset">
-  <description>PHP CodeSniffer configuration.</description>
+    <description>PHP CodeSniffer configuration.</description>
 
-  <rule ref="Symfony">
-    <exclude name="Symfony.Commenting.ClassComment"/>
-    <exclude name="Symfony.Commenting.FunctionComment"/>
-    <exclude name="Symfony.Commenting.License"/>
-    <exclude name="Symfony.Functions.Arguments"/>
-  </rule>
+    <rule ref="Symfony">
+        <exclude name="Symfony.Commenting.ClassComment"/>
+        <exclude name="Symfony.Commenting.FunctionComment"/>
+        <exclude name="Symfony.Commenting.License"/>
+        <exclude name="Symfony.Functions.Arguments"/>
+    </rule>
 
-  <rule ref="Squiz.Strings.ConcatenationSpacing">
-    <properties>
-      <property name="spacing" value="1" />
-    </properties>
-  </rule>
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="1" />
+        </properties>
+    </rule>
 </ruleset>
