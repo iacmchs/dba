@@ -9,6 +9,7 @@ database:
     latest_news:
       get: 0.5
       table: content
+      # Here you can use any valid sql operators for comparison.
       where:
         type: news
         created: ['(NOW() - INTERVAL 1 MONTH)', '>=']
@@ -29,3 +30,54 @@ database:
     actions:
       get: 0.8
       export_method: row
+
+  # Here you can set anonymization rules for DB tables data.
+  anonymization:
+    private_files:
+      table: files
+      # Apply this anonymization to rows with deleted=0, status!=0
+      # and uri matching regex.
+      # Here you can use simple php comparison operators and regex.
+      where:
+        deleted: 0
+        status: [0, '!=']
+        uri: ['!^private://.*!', 'regex']
+      # Specify fields to anonymize.
+      fields:
+        # You can use any Faker method to generate some value here
+        # (see more at https://fakerphp.github.io/).
+        # Generate a filename (ex: 'aeliyodulp.txt').
+        filename:
+          method: 'Faker::lexify'
+          args:
+            - '??????????.txt'
+        # Compose uri using generated filename (ex: 'private://aeliyodulp.txt').
+        uri:
+          method: concat
+          args:
+            - 'private://'
+            - '%filename'
+        # Replace file mime with a simple value.
+        filemime: text/plain
+    # Anonymize some data from users table (affects all rows).
+    users:
+      fields:
+        # Generate a new username in a following format: [random_word]_[user_id]
+        # (ex: architecto_42).
+        name:
+          method: concat
+          args:
+            -
+              method: 'Faker::word'
+            - _
+            - '%id'
+        # Replace password hash with a simple value.
+        pass: '-'
+        # Compose email using username (ex: architecto_42@test.test)
+        mail:
+          method: concat
+          args:
+            - '%name'
+            - '@test.test'
+        # Erase additional user data.
+        data: null

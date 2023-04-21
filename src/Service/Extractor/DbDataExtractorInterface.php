@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\DDL;
+namespace App\Service\Extractor;
 
 /**
  * DB data extractor.

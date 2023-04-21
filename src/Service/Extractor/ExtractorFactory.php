@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Service\DDL;
+namespace App\Service\Extractor;
 
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFoundException;
-use App\Service\DbConnectionSetterInterface;
-use App\Service\DDL\Extractor\DbStructureExtractorInterface;
+use App\Service\Anonymization\AnonymizerInterface;
 use Doctrine\DBAL\Connection;
 use Traversable;
 
@@ -73,16 +72,20 @@ class ExtractorFactory
     /**
      * Create db data extractor based on db connection.
      *
-     * @param Connection            $connection
-     * @param ConfigurationManagerInterface $configurationManager
+     * @param \Doctrine\DBAL\Connection $connection
+     * @param \App\Configuration\ConfigurationManagerInterface $configurationManager
+     * @param \App\Service\Anonymization\AnonymizerInterface $anonymizer
      *
-     * @return DbDataExtractorInterface
+     * @return \App\Service\Extractor\DbDataExtractorInterface
      *
-     * @throws DataExtractorNotFoundException
-     * @throws InvalidExtractorInterfaceException
+     * @throws \App\Exception\Service\DDL\DataExtractorNotFoundException
+     * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
      */
-    public function createDataExtractor(Connection $connection, ConfigurationManagerInterface $configurationManager): DbDataExtractorInterface
-    {
+    public function createDataExtractor(
+        Connection $connection,
+        ConfigurationManagerInterface $configurationManager,
+        AnonymizerInterface $anonymizer
+    ): DbDataExtractorInterface {
         if (!isset($this->extractors[$connection->getDriver()::class][DbDataExtractorInterface::class])) {
             throw DataExtractorNotFoundException::byDbDriverName($connection->getDriver()::class);
         }
@@ -95,6 +98,7 @@ class ExtractorFactory
 
         $extractor->setDbConnection($connection);
         $extractor->setConfigurationManager($configurationManager);
+        $extractor->setAnonymizer($anonymizer);
 
         return $extractor;
     }

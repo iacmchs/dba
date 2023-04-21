@@ -11,7 +11,8 @@ use App\Exception\Service\DDL\DataExtractorNotFoundException;
 use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
 use App\Exception\Service\DDL\StructureExtractorNotFoundException;
 use App\Infrastructure\DBConnector;
-use App\Service\DDL\ExtractorFactory;
+use App\Service\Anonymization\Anonymizer;
+use App\Service\Extractor\ExtractorFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use PDOException;
@@ -76,8 +77,12 @@ class ExportDbCommand extends Command
      * @param DBConnector      $connector
      * @param Filesystem       $filesystem
      */
-    public function __construct(private readonly string $databaseDumpFolder, private readonly ExtractorFactory $extractorFactory, private readonly DBConnector $connector, private readonly Filesystem $filesystem)
-    {
+    public function __construct(
+        private readonly string $databaseDumpFolder,
+        private readonly ExtractorFactory $extractorFactory,
+        private readonly DBConnector $connector,
+        private readonly Filesystem $filesystem
+    ) {
         parent::__construct();
         $this->timeStart = time();
     }
@@ -187,7 +192,8 @@ class ExportDbCommand extends Command
      */
     public function dumpTables()
     {
-        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager);
+        $anonymizer = new Anonymizer($this->configurationManager);
+        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager, $anonymizer);
         $tables = $this->connection->createSchemaManager()->listTableNames();
         sort($tables);
 

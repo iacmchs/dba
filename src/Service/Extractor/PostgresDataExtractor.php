@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Service\DDL\Extractor;
+namespace App\Service\Extractor;
 
 use App\Configuration\ConfigurationManagerInterface;
+use App\Exception\Service\DDL\Extractor\AnonymizerNotInjectedException;
 use App\Exception\Service\DDL\Extractor\ConfigurationManagerNotInjectedException;
 use App\Exception\Service\DDL\Extractor\ConnectionNotInjectedException;
-use App\Service\DbConnectionSetterInterface;
-use App\Service\DDL\DbDataExtractorInterface;
+use App\Service\Anonymization\AnonymizerInterface;
+use App\Service\Anonymization\AnonymizerSetterInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
 use Symfony\Component\Filesystem\Filesystem;
@@ -20,6 +21,7 @@ class PostgresDataExtractor implements
     DbDataExtractorInterface,
     DbDriverNameInterface,
     DbConnectionSetterInterface,
+    AnonymizerSetterInterface,
     ConfigurationManagerSetterInterface
 {
 
@@ -35,10 +37,22 @@ class PostgresDataExtractor implements
      */
     private ?Connection $connection;
 
+    /**
+     * Data anonymizer.
+     *
+     * @var \App\Service\Anonymization\AnonymizerInterface|null
+     */
+    private ?AnonymizerInterface $anonymizer;
+
+    /**
+     * Configuration manager.
+     *
+     * @var \App\Configuration\ConfigurationManagerInterface|null
+     */
     private ?ConfigurationManagerInterface $configurationManager;
 
     /**
-     * @param Filesystem $filesystem
+     * @param \Symfony\Component\Filesystem\Filesystem $filesystem
      */
     public function __construct(private readonly Filesystem $filesystem)
     {
@@ -53,6 +67,7 @@ class PostgresDataExtractor implements
             $tableConfig = $this->getConfigurationManager()->getTableConfig($tableName);
         }
 
+        $tableAnonymization = $this->getConfigurationManager()->getTableAnonymization($tableName);
         $filePath = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
         $sql = $insertSql = "INSERT INTO $tableName VALUES" . PHP_EOL;
 
@@ -61,7 +76,7 @@ class PostgresDataExtractor implements
         $hasResult = false;
         $i = 0;
 
-        foreach ($this->getConnection()->iterateNumeric($query) as $row) {
+        foreach ($this->getConnection()->iterateAssociative($query) as $row) {
             $i++;
             $hasResult = true;
 
@@ -79,6 +94,7 @@ class PostgresDataExtractor implements
             }
 
             // Prepare current row for export.
+            $row = $this->getAnonymizer()->anonymize($tableName, $row, $tableAnonymization);
             $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
         }
 
@@ -120,6 +136,14 @@ class PostgresDataExtractor implements
     /**
      * @inheritDoc
      */
+    public function setAnonymizer(AnonymizerInterface $anonymizer): void
+    {
+        $this->anonymizer = $anonymizer;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function setConfigurationManager(ConfigurationManagerInterface $configurationManager): void
     {
         $this->configurationManager = $configurationManager;
@@ -155,6 +179,22 @@ class PostgresDataExtractor implements
         }
 
         return $this->configurationManager;
+    }
+
+    /**
+     * Returns configuration manager.
+     *
+     * @return \App\Service\Anonymization\AnonymizerInterface
+     *
+     * @throws \App\Exception\Service\DDL\Extractor\AnonymizerNotInjectedException
+     */
+    private function getAnonymizer(): AnonymizerInterface
+    {
+        if (!$this->anonymizer) {
+            throw AnonymizerNotInjectedException::create();
+        }
+
+        return $this->anonymizer;
     }
 
     /**
@@ -216,7 +256,7 @@ class PostgresDataExtractor implements
         $values = '';
 
         foreach ($row as $key => $item) {
-            if (null === $item) {
+            if (is_null($item)) {
                 $values .= 'null';
             } elseif (is_bool($item)) {
                 $values .= $item ? 'true' : 'false';
