@@ -110,6 +110,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
                 'table' => $entityName,
                 'where' => [],
                 'relations' => [],
+                'fields' => [],
                 'export_method' => '',
             ];
         }

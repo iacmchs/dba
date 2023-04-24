@@ -52,11 +52,11 @@ class PostgresDataExtractor implements
     private ?ConfigurationManagerInterface $configurationManager;
 
     /**
-     * Internal cache.
+     * Data for internal usage.
      *
      * @var array
      */
-    private array $cache = [];
+    private array $data = [];
 
     /**
      * @param \Symfony\Component\Filesystem\Filesystem $filesystem
@@ -74,7 +74,7 @@ class PostgresDataExtractor implements
             $tableConfig = $this->getConfigurationManager()->getTableConfig($tableName);
         }
 
-        $this->dumpBase($dir, $tableConfig, $fileNamePrefix);
+        $this->dumpBase($dir, $tableConfig, [], $fileNamePrefix);
     }
 
     /**
@@ -86,7 +86,10 @@ class PostgresDataExtractor implements
             $entityConfig = $this->getConfigurationManager()->getEntityConfig($entityName);
         }
 
-        $this->dumpBase($dir, $entityConfig, $fileNamePrefix);
+        $params = [
+            'check_ids' => true,
+        ];
+        $this->dumpBase($dir, $entityConfig, $params, $fileNamePrefix);
     }
 
     /**
@@ -136,6 +139,9 @@ class PostgresDataExtractor implements
      *   Path do directory that contains exported files.
      * @param array $config
      *   Table/entity config.
+     * @param array $params
+     *   Processing params. The following are now available:
+     *   - check_ids: TRUE - check row id before dumping to avoid duplicates.
      * @param string $fileNamePrefix
      *   File name prefix.
      *
@@ -146,12 +152,13 @@ class PostgresDataExtractor implements
      * @throws \App\Exception\Service\Extractor\ConnectionNotInjectedException
      * @throws \Doctrine\DBAL\Exception
      */
-    private function dumpBase(string $dir, array $config, string $fileNamePrefix = ''): void
+    private function dumpBase(string $dir, array $config, array $params = [], string $fileNamePrefix = ''): void
     {
         if (!$config) {
             return;
         }
 
+        // Prepare some data.
         $tableAnonymization = $this->getConfigurationManager()->getTableAnonymization($config['table']);
         $filePath = $dir . '/' . $this->getNewTableFileName($config['table'], $fileNamePrefix);
         $sql = $insertSql = "INSERT INTO {$config['table']} VALUES" . PHP_EOL;
@@ -165,12 +172,23 @@ class PostgresDataExtractor implements
             return;
         }
 
+        // Get rows from db table and export them.
         foreach ($this->getConnection()->iterateAssociative($query) as $row) {
             $i++;
             $hasResult = true;
 
+            // If we need to check ids to avoid duplicate rows.
+            if (!empty($params['check_ids']) && !empty($config['fields']['id'])) {
+                $rowId = (string) ($row[$config['fields']['id']] ?? '');
+                if ($this->getRowIdFromStorage($config['table'], $rowId)) {
+                    continue;
+                }
+
+                $this->saveRowIdToStorage($config['table'], $rowId);
+            }
+
             // Export previous row to file.
-            if ($needSaveAfterEachRow) {
+            if ($needSaveAfterEachRow && $sql !== $insertSql) {
                 $this->filesystem->appendToFile($filePath, $sql);
                 $sql = '';
             }
@@ -187,11 +205,11 @@ class PostgresDataExtractor implements
             $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
 
             // Export relations (if any).
-            $this->dumpTableRelations($config['relations'] ?? [], $row, $dir, $fileNamePrefix);
+            $this->dumpTableRelations($config['relations'] ?? [], $row, $dir, $params, $fileNamePrefix);
         }
 
         // Export last row (or all rows) to file.
-        if ($hasResult) {
+        if ($hasResult && $sql !== $insertSql) {
             $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
             $this->filesystem->appendToFile($filePath, $sql);
         }
@@ -206,16 +224,20 @@ class PostgresDataExtractor implements
      *   A row from current table.
      * @param string $dir
      *   Path do directory that contains exported files.
+     * @param array $params
+     *   Processing params. The following are now available:
+     *   - check_ids: TRUE - check row id to avoid duplicate rows.
      * @param string $fileNamePrefix
      *   File name prefix.
      *
      * @return void
+     *
      * @throws \App\Exception\Service\Extractor\AnonymizerNotInjectedException
      * @throws \App\Exception\Service\Extractor\ConfigurationManagerNotInjectedException
      * @throws \App\Exception\Service\Extractor\ConnectionNotInjectedException
      * @throws \Doctrine\DBAL\Exception
      */
-    private function dumpTableRelations(array $relations, array $row, string $dir, string $fileNamePrefix = ''): void
+    private function dumpTableRelations(array $relations, array $row, string $dir, array $params = [], string $fileNamePrefix = ''): void
     {
         foreach ($relations as $relationName => $relationConfig) {
             $relationConfig += [
@@ -278,56 +300,45 @@ class PostgresDataExtractor implements
                 $config = $relationConfig;
             }
 
-            $this->dumpBase($dir, $config, $fileNamePrefix);
+            $this->dumpBase($dir, $config, $params, $fileNamePrefix);
         }
     }
 
     /**
-     * Returns db connection.
+     * Saves row id to internal storage.
      *
-     * @return Connection
+     * This may be used to perform and additional check to save unique rows only
+     * and avoid duplicates in export files.
      *
-     * @throws ConnectionNotInjectedException
+     * @param string $tableName
+     *   DB table name.
+     * @param string $id
+     *   Row id.
+     *
+     * @return void
      */
-    private function getConnection(): Connection
+    private function saveRowIdToStorage(string $tableName, string $id): void
     {
-        if (!$this->connection) {
-            throw ConnectionNotInjectedException::create();
-        }
-
-        return $this->connection;
+        $this->data['tables'][$tableName][$id] = $id;
     }
 
     /**
-     * Returns configuration manager.
+     * Retrieves row id from internal storage.
      *
-     * @return ConfigurationManagerInterface
+     * This may be used to perform and additional check to save unique rows only
+     * and avoid duplicates in export files.
      *
-     * @throws ConfigurationManagerNotInjectedException
+     * @param string $tableName
+     *   DB table name.
+     * @param string $id
+     *   Row id.
+     *
+     * @return string
+     *   Row id if it's already exists in storage, or empty string otherwise.
      */
-    private function getConfigurationManager(): ConfigurationManagerInterface
+    private function getRowIdFromStorage(string $tableName, string $id): string
     {
-        if (!$this->configurationManager) {
-            throw ConfigurationManagerNotInjectedException::create();
-        }
-
-        return $this->configurationManager;
-    }
-
-    /**
-     * Returns configuration manager.
-     *
-     * @return \App\Service\Anonymization\AnonymizerInterface
-     *
-     * @throws \App\Exception\Service\Extractor\AnonymizerNotInjectedException
-     */
-    private function getAnonymizer(): AnonymizerInterface
-    {
-        if (!$this->anonymizer) {
-            throw AnonymizerNotInjectedException::create();
-        }
-
-        return $this->anonymizer;
+        return $this->data['tables'][$tableName][$id] ?? '';
     }
 
     /**
@@ -447,5 +458,53 @@ class PostgresDataExtractor implements
         $name = str_replace('"', '', $name);
 
         return ($prefix ? $prefix . '_' : '') . $name . '.sql';
+    }
+
+    /**
+     * Returns db connection.
+     *
+     * @return Connection
+     *
+     * @throws ConnectionNotInjectedException
+     */
+    private function getConnection(): Connection
+    {
+        if (!$this->connection) {
+            throw ConnectionNotInjectedException::create();
+        }
+
+        return $this->connection;
+    }
+
+    /**
+     * Returns configuration manager.
+     *
+     * @return ConfigurationManagerInterface
+     *
+     * @throws ConfigurationManagerNotInjectedException
+     */
+    private function getConfigurationManager(): ConfigurationManagerInterface
+    {
+        if (!$this->configurationManager) {
+            throw ConfigurationManagerNotInjectedException::create();
+        }
+
+        return $this->configurationManager;
+    }
+
+    /**
+     * Returns configuration manager.
+     *
+     * @return \App\Service\Anonymization\AnonymizerInterface
+     *
+     * @throws \App\Exception\Service\Extractor\AnonymizerNotInjectedException
+     */
+    private function getAnonymizer(): AnonymizerInterface
+    {
+        if (!$this->anonymizer) {
+            throw AnonymizerNotInjectedException::create();
+        }
+
+        return $this->anonymizer;
     }
 }
