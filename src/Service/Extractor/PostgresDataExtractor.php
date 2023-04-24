@@ -282,9 +282,11 @@ class PostgresDataExtractor implements
                     }
                 }
 
-                $config = $this->getConfigurationManager()->getEntityConfig($entityType . '__' . $entityBundle);
-                $config['where'][$relationConfig['fields']['id']] = $entityId;
-                $config['get'] = 1;
+                $config = $this->getConfigurationManager()->getEntityConfig($entityType . ($entityBundle ? '__' . $entityBundle : ''));
+                if ($config) {
+                    $config['where'][$relationConfig['fields']['id']] = $entityId;
+                    $config['get'] = 1;
+                }
 
             // If relation is a table.
             } else {

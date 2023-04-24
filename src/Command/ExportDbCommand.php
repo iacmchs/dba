@@ -237,6 +237,12 @@ class ExportDbCommand extends Command
     {
         $entities = $this->configurationManager->getEntities();
         foreach ($entities as $entityName => $entityConfig) {
+            $entityConfig = $this->configurationManager->getEntityConfig($entityName);
+            // Skip entities that are configured to export 0% of data.
+            if (empty($entityConfig['get'])) {
+                continue;
+            }
+
             $this->write("Exporting $entityName...");
             $this->dataExtractor->dumpEntity($entityName, $this->dumpPath, $entityConfig);
             $this->writeln(' done.', false);
