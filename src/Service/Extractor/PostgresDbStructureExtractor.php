@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Extractor;
 
-use App\Exception\Service\DDL\Extractor\ConnectionNotInjectedException;
+use App\Exception\Service\Extractor\ConnectionNotInjectedException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDO\PgSQL\Driver;
 use Doctrine\DBAL\Exception;
