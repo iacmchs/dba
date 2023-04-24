@@ -48,6 +48,14 @@ class ConfigurationManager implements ConfigurationManagerInterface
     /**
      * @inheritDoc
      */
+    public function getEntities(): array
+    {
+        return $this->config['database']['entities'] ?? [];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getAnonymization(): array
     {
         return $this->config['database']['anonymization'] ?? [];
@@ -84,6 +92,27 @@ class ConfigurationManager implements ConfigurationManagerInterface
             'where' => [],
             'export_method' => '',
         ];
+
+        return $config;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEntityConfig(string $entityName): array
+    {
+        $configEntities = $this->getEntities();
+        $config = $configEntities[$entityName] ?? [];
+
+        if ($config) {
+            $config += [
+                'get' => 0.01,
+                'table' => $entityName,
+                'where' => [],
+                'relations' => [],
+                'export_method' => '',
+            ];
+        }
 
         return $config;
     }
