@@ -260,7 +260,9 @@ class PostgresDataExtractor implements
 
                 // If type/bundle are not defined then we take it from db table
                 // that represents current entity. Let's just find entity by id.
-                if (!$entityType || !$entityBundle) {
+                if (!$entityType && !empty($relationConfig['fields']['type'])
+                    || !$entityBundle && $relationConfig['fields']['bundle']
+                ) {
                     $query = [
                         'table' => $relationConfig['table'],
                         'get' => 1,
