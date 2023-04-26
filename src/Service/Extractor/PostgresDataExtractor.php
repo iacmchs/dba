@@ -285,6 +285,13 @@ class PostgresDataExtractor implements
                 }
 
                 $config = $this->getConfigurationManager()->getEntityConfig($entityType . ($entityBundle ? '__' . $entityBundle : ''));
+                // If related entity type should be fully dumped then we
+                // don't need to dump any particular entity here.
+                if (($config['get'] ?? 0) === 1) {
+                    continue;
+                }
+
+                // Otherwise we should dump a current (single) entity.
                 if ($config) {
                     $config['where'][$relationConfig['fields']['id']] = $entityId;
                     $config['get'] = 1;
@@ -292,6 +299,13 @@ class PostgresDataExtractor implements
 
             // If relation is a table.
             } else {
+                $config = $this->getConfigurationManager()->getTableConfig($relationConfig['table']);
+                // If related table should be fully dumped then we
+                // don't need to dump any particular row here.
+                if (($config['get'] ?? 0) === 1) {
+                    continue;
+                }
+
                 // Preprocess conditions.
                 foreach ($relationConfig['where'] ?? [] as $key => $value) {
                     // If value is like `%fieldname` then we need to copy a
