@@ -68,14 +68,21 @@ class ConfigurationManager implements ConfigurationManagerInterface
     {
         $configTables = $this->getTables();
         $config = [];
+        $enrichConfigName = '';
+
+        if (!empty($configTables[$tableName]['_is_enriched'])) {
+            return $configTables[$tableName];
+        }
 
         foreach ($configTables as $configTableKey => $configTableValue) {
             if ($configTableKey === $tableName) {
                 $config = is_numeric($configTableValue)
                     ? ['get' => (float) $configTableValue]
                     : $configTableValue;
+                $enrichConfigName = $configTableKey;
             } elseif (!empty($configTableValue['table']) && $configTableValue['table'] === $tableName) {
                 $config = $configTableValue;
+                $enrichConfigName = $configTableKey;
             } elseif (!empty($configTableValue['table_regex']) && preg_match($configTableValue['table_regex'], $tableName)) {
                 $config = $configTableValue;
             }
@@ -93,6 +100,13 @@ class ConfigurationManager implements ConfigurationManagerInterface
             'export_method' => '',
         ];
 
+        // Save enriched config back to original table config array to
+        // optimize performance for the next table config search.
+        if ($enrichConfigName) {
+            $config['_is_enriched'] = true;
+            $this->setTableConfig($enrichConfigName, $config);
+        }
+
         return $config;
     }
 
@@ -104,7 +118,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
         $configEntities = $this->getEntities();
         $config = $configEntities[$entityName] ?? [];
 
-        if ($config) {
+        if ($config && empty($config['_is_enriched'])) {
             $config += [
                 'get' => 0.01,
                 'table' => $entityName,
@@ -112,7 +126,9 @@ class ConfigurationManager implements ConfigurationManagerInterface
                 'relations' => [],
                 'fields' => [],
                 'export_method' => '',
+                '_is_enriched' => true,
             ];
+            $this->setEntityConfig($entityName, $config);
         }
 
         return $config;
@@ -169,5 +185,35 @@ class ConfigurationManager implements ConfigurationManagerInterface
     public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
     {
         return (bool) $this->getTablePercentage($tableName, $tableConfig);
+    }
+
+    /**
+     * Updates table config.
+     *
+     * @param string $tableName
+     *   DB table name.
+     * @param array $tableConfig
+     *   New table dump config.
+     *
+     * @return void
+     */
+    private function setTableConfig(string $tableName, array $tableConfig): void
+    {
+        $this->config['database']['tables'][$tableName] = $tableConfig;
+    }
+
+    /**
+     * Updates entity config.
+     *
+     * @param string $entityName
+     *   Entity name.
+     * @param array $entityConfig
+     *   New entity dump config.
+     *
+     * @return void
+     */
+    private function setEntityConfig(string $entityName, array $entityConfig): void
+    {
+        $this->config['database']['entities'][$entityName] = $entityConfig;
     }
 }
