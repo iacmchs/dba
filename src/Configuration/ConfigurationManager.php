@@ -35,6 +35,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
         }
 
         $this->config = $config;
+        $this->copyTablesFromEntities();
     }
 
     /**
@@ -64,7 +65,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
     /**
      * @inheritDoc
      */
-    public function getTableConfig(string $tableName): array
+    public function getTableConfig(string $tableName, bool $strict = false): array
     {
         $configTables = $this->getTables();
         $config = [];
@@ -72,6 +73,10 @@ class ConfigurationManager implements ConfigurationManagerInterface
 
         if (!empty($configTables[$tableName]['_is_enriched'])) {
             return $configTables[$tableName];
+        }
+
+        if ($strict) {
+            return $configTables[$tableName] ?? [];
         }
 
         foreach ($configTables as $configTableKey => $configTableValue) {
@@ -185,6 +190,40 @@ class ConfigurationManager implements ConfigurationManagerInterface
     public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
     {
         return (bool) $this->getTablePercentage($tableName, $tableConfig);
+    }
+
+    /**
+     * Update database.tables list with tables from database.entities section.
+     *
+     * Here we copy tables from entities (and their relations) to the
+     * database.tables section of config and set get=0 to them to avoid
+     * direct exporting data from these tables.
+     * If we need a full dump of data from some table then we should
+     * exclude it from relations (and maybe add to database.tables section
+     * with get=1).
+     *
+     * @param array $list
+     *   List of entities or relations with their config.
+     *   If not set then we get all entities from config file.
+     *
+     * @return void
+     */
+    private function copyTablesFromEntities(array $list = []): void
+    {
+        if (empty($list)) {
+            $list = $this->getEntities();
+        }
+
+        foreach ($list as $entityName => $entityConfig) {
+            $entityConfig['table'] = $entityConfig['table'] ?? $entityName;
+            if (empty($this->getTableConfig($entityConfig['table'], true))) {
+                $this->setTableConfig($entityConfig['table'], ['get' => 0]);
+            }
+
+            if (!empty($entityConfig['relations'])) {
+                $this->copyTablesFromEntities($entityConfig['relations']);
+            }
+        }
     }
 
     /**
