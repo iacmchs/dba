@@ -274,12 +274,12 @@ class PostgresDataExtractor implements
 
                     // Get entity type and bundle.
                     $query = $this->getDataSelectQuery($query);
-                    foreach ($this->getConnection()->iterateAssociative($query) as $row) {
+                    foreach ($this->getConnection()->iterateAssociative($query) as $entityRow) {
                         if (!$entityType) {
-                            $entityType = $row[$relationConfig['fields']['type']];
+                            $entityType = $entityRow[$relationConfig['fields']['type']];
                         }
                         if (!$entityBundle) {
-                            $entityBundle = $row[$relationConfig['fields']['bundle']];
+                            $entityBundle = $entityRow[$relationConfig['fields']['bundle']];
                         }
                     }
                 }
