@@ -403,7 +403,7 @@ class PostgresDataExtractor implements
         }
 
         if ($where) {
-            $query .= ' WHERE ' . implode(' AND ', $where);
+            $query .= ' WHERE (' . implode(') AND (', $where) . ')';
         }
 
         if (!empty($tableConfig['limit'])) {
