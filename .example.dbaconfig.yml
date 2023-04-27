@@ -18,7 +18,7 @@ database:
     cache_:
       table_regex: '/^cache_.*/'
       get: 0
-    # Get 80% of rows from this table.
+    # Get 80% of rows from this table where `data` column is empty.
     # The `export_method: row` option means that each row would be immediately
     # saved to the file during the export.
     # By default, all selected rows are saved to the file at once to improve
@@ -29,7 +29,109 @@ database:
     # behavior first.
     actions:
       get: 0.8
+      where:
+        whatever: ['data="" OR data IS NULL', 'expression']
       export_method: row
+
+  # Database entity - is a table that has relation with other tables
+  # (by foreign key). Here we can define entities that should be exported.
+  # Entity name should follow [entity_type]__[entity_bundle] or just
+  # [entity_type] naming convention.
+  entities:
+    # Export 1% of articles. Basically in our example database all content
+    # is stored in `content` table, so here we get rows with type='article'.
+    content__article:
+      table: content
+      get: 0.01
+      where:
+        type: article
+      # Also we need to know the name of a column that represents row id
+      # (if it exists).
+      fields:
+        id: content_id
+      # As we can see articles has relations with other tables.
+      relations:
+        # We should also export rows from table `category` with id=[category_id
+        # value of current row from `content` table].
+        category:
+          where:
+            id: '%category_id'
+          # As there can be only 1 category selected for article we can add
+          # `limit 1` to optimize search performance.
+          limit: 1
+        # And we want to export data from `related_content` table as well.
+        related_content:
+          where:
+            entity_type: content
+            bundle: article
+            entity_id: '%content_id'
+          # But `related_content` table does not store content data, it just
+          # links pages with each other. So we have to add another relationship.
+          relations:
+            # Here we want to export rows from `content` table, but it would be
+            # not enough as content is an entity (has relationships with other
+            # tables). So we flag it with is_entity=1 to check content entity
+            # and export it with related stuff. The content__[bundle] entity
+            # should be listed in this file as well to export data as expected.
+            # Here we export entities by getting data from `content` table
+            # with content_id=[related_entity_id value of current row from
+            # `related_content` table] and bundle=... Actually bundle may be
+            # different, and we can't predict it in this case.
+            # But this tool is smart enough to get a row from `content`
+            # table by id first and use `type` value as bundle to call
+            # content__[bundle] entity export.
+            # If you know bundle right away then you can add it to `values`
+            # just like we add a `type: content` here.
+            pages:
+              table: content
+              is_entity: 1
+              values:
+                id: '%related_entity_id'
+                type: content
+              fields:
+                id: content_id
+                bundle: type
+    # Export all books.
+    content__book:
+      table: content
+      get: 1
+      where:
+        type: book
+      fields:
+        id: content_id
+      relations:
+        # We should also export data from `content_users` table where
+        # content_id=[content_id value of current row from `content` table].
+        book_authors:
+          table: content_users
+          where:
+            content_id: '%content_id'
+          # But `content_users` table does not store author data, it just links
+          # books with authors. So we have another relationship here.
+          relations:
+            # Here we want to export rows from `user` table, but it would be
+            # not enough as user is an entity (has relationship with another
+            # table). So we flag it with is_entity=1 to check `user` entity
+            # and export it with related stuff. The `user` entity should
+            # be listed in this file as well.
+            users:
+              table: user
+              is_entity: 1
+              values:
+                id: '%user_id'
+                type: user
+    # We don't want any random data from `users` table, but other entities has
+    # references to this table (i.e. content author), so we have to declare it
+    # as an entity with all relations to make export work as expected.
+    user:
+      table: users
+      get: 0
+      fields:
+        id: uid
+      relations:
+        users_roles:
+          where:
+            uid: '%uid'
 
   # Here you can set anonymization rules for DB tables data.
   anonymization:
