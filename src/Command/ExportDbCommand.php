@@ -198,6 +198,11 @@ class ExportDbCommand extends Command
      */
     public function dumpStructure(): void
     {
+        if ($this->configurationManager->shouldSkip('structure')) {
+            $this->writeln('Skipping.');
+            return;
+        }
+
         $this->write("Exporting DB structure...");
         $structureExtractor = $this->extractorFactory->createStructureExtractor($this->connection);
         $structureExtractor->dumpStructure($this->dumpPath);
@@ -213,6 +218,11 @@ class ExportDbCommand extends Command
      */
     public function dumpTables(): void
     {
+        if ($this->configurationManager->shouldSkip('tables')) {
+            $this->writeln('Skipping.');
+            return;
+        }
+
         $tables = $this->connection->createSchemaManager()->listTableNames();
         sort($tables);
 
@@ -235,6 +245,11 @@ class ExportDbCommand extends Command
      */
     public function dumpEntities(): void
     {
+        if ($this->configurationManager->shouldSkip('entities')) {
+            $this->writeln('Skipping.');
+            return;
+        }
+
         $entities = $this->configurationManager->getEntities();
         foreach ($entities as $entityName => $entityConfig) {
             $entityConfig = $this->configurationManager->getEntityConfig($entityName);
