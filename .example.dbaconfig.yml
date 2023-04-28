@@ -1,5 +1,6 @@
 name: 'Fantastic site'
 driver: pgsql
+
 database:
   # Any tables that are NOT mentioned here would be fully copied from DB.
   tables:
@@ -20,13 +21,8 @@ database:
       get: 0
     # Get 80% of rows from this table where `data` column is empty.
     # The `export_method: row` option means that each row would be immediately
-    # saved to the file during the export.
-    # By default, all selected rows are saved to the file at once to improve
-    # performance and reduce disk usage. But it can cause errors due to
-    # insufficient memory in case if you have super large data dumps or super
-    # low RAM available.
-    # Just keep in mind that this option exists, but try to use default
-    # behavior first.
+    # saved to the file during the export. See more details in the `options`
+    # section of this file.
     actions:
       get: 0.8
       where:
@@ -183,3 +179,51 @@ database:
             - '@test.test'
         # Erase additional user data.
         data: null
+
+# Here you can set some options for DB Anonymizer. These options may be useful
+# for testing and debugging.
+# If you want to use defaults then it's okay to remove this section.
+options:
+  # DB structure export step:
+  structure:
+    # 1 - skip this step, 0 - don't skip.
+    skip: 0
+  # DB tables export step:
+  tables:
+    # 1 - skip this step, 0 - don't skip.
+    skip: 0
+    # Default percentage, is used for tables that are not listed in the
+    # `database.tables` section. By default, all data from such tables should be
+    # fully exported (1 is 100%).
+    # This option is also applies to tables without explicit `get` parameter.
+    get: 1
+    # During export rows are grouped in a batch under single INSERT INTO query.
+    # Here you can set the max size of the batch.
+    insert_rows_max: 300
+    # Following options are available here:
+    # - default: all exported rows (of a single table) are added to RAM and
+    # saved to the file at once to improve performance and reduce disk usage
+    # (but it can cause errors due to insufficient memory in case if you have
+    # super large data dumps or super low RAM available).
+    # - row: each row would be immediately saved to the file during the export.
+    # Just keep in mind that this option exists, but try to use default
+    # behavior first.
+    export_method: default
+  # DB entities export step:
+  entities:
+    # 1 - skip this step, 0 - don't skip.
+    skip: 0
+    # Default percentage, is used for entities without explicit `get` parameter.
+    # By default, 1% of entities is dumped.
+    get: 0.01
+    # Same as `options.tables.insert_rows_max`.
+    # Keep in mind that rows of related tables are normally exported by 1 in
+    # a batch. However, sometimes still there are many rows in a batch and then
+    # this limit makes sense.
+    insert_rows_max: 300
+    # Same as `options.tables.export_method`.
+    export_method: default
+  # DB data anonymization (works for both tables and entities):
+  anonymization:
+    # 1 - skip anonymization, 0 - don't skip.
+    skip: 0
