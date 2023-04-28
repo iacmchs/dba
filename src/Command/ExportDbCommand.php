@@ -200,6 +200,7 @@ class ExportDbCommand extends Command
     {
         if ($this->configurationManager->shouldSkip('structure')) {
             $this->writeln('Skipping.');
+
             return;
         }
 
@@ -220,6 +221,7 @@ class ExportDbCommand extends Command
     {
         if ($this->configurationManager->shouldSkip('tables')) {
             $this->writeln('Skipping.');
+
             return;
         }
 
@@ -247,6 +249,7 @@ class ExportDbCommand extends Command
     {
         if ($this->configurationManager->shouldSkip('entities')) {
             $this->writeln('Skipping.');
+
             return;
         }
 
