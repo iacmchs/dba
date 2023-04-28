@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Service\Extractor;
 
 use App\Configuration\ConfigurationManagerInterface;
-use App\Exception\Service\DDL\DataExtractorNotFoundException;
-use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
-use App\Exception\Service\DDL\StructureExtractorNotFoundException;
+use App\Exception\Service\Extractor\DataExtractorNotFoundException;
+use App\Exception\Service\Extractor\InvalidExtractorInterfaceException;
+use App\Exception\Service\Extractor\StructureExtractorNotFoundException;
 use App\Service\Anonymization\AnonymizerInterface;
 use Doctrine\DBAL\Connection;
 use Traversable;
@@ -78,8 +78,8 @@ class ExtractorFactory
      *
      * @return \App\Service\Extractor\DbDataExtractorInterface
      *
-     * @throws \App\Exception\Service\DDL\DataExtractorNotFoundException
-     * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
+     * @throws \App\Exception\Service\Extractor\DataExtractorNotFoundException
+     * @throws \App\Exception\Service\Extractor\InvalidExtractorInterfaceException
      */
     public function createDataExtractor(
         Connection $connection,

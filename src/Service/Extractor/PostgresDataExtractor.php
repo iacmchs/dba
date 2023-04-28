@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Service\Extractor;
 
 use App\Configuration\ConfigurationManagerInterface;
-use App\Exception\Service\DDL\Extractor\AnonymizerNotInjectedException;
-use App\Exception\Service\DDL\Extractor\ConfigurationManagerNotInjectedException;
-use App\Exception\Service\DDL\Extractor\ConnectionNotInjectedException;
+use App\Exception\Service\Extractor\AnonymizerNotInjectedException;
+use App\Exception\Service\Extractor\ConfigurationManagerNotInjectedException;
+use App\Exception\Service\Extractor\ConnectionNotInjectedException;
 use App\Service\Anonymization\AnonymizerInterface;
 use App\Service\Anonymization\AnonymizerSetterInterface;
 use Doctrine\DBAL\Connection;
@@ -52,6 +52,13 @@ class PostgresDataExtractor implements
     private ?ConfigurationManagerInterface $configurationManager;
 
     /**
+     * Data for internal usage.
+     *
+     * @var array
+     */
+    private array $data = [];
+
+    /**
      * @param \Symfony\Component\Filesystem\Filesystem $filesystem
      */
     public function __construct(private readonly Filesystem $filesystem)
@@ -67,46 +74,22 @@ class PostgresDataExtractor implements
             $tableConfig = $this->getConfigurationManager()->getTableConfig($tableName);
         }
 
-        $tableAnonymization = $this->getConfigurationManager()->getTableAnonymization($tableName);
-        $filePath = $dir . '/' . $this->getNewTableFileName($tableName, $fileNamePrefix);
-        $sql = $insertSql = "INSERT INTO $tableName VALUES" . PHP_EOL;
+        $this->dumpBase($dir, $tableConfig, [], $fileNamePrefix);
+    }
 
-        $query = $this->getDataSelectQuery($tableConfig);
-        $needSaveAfterEachRow = $tableConfig['export_method'] === 'row';
-        $hasResult = false;
-        $i = 0;
-
-        foreach ($this->getConnection()->iterateAssociative($query) as $row) {
-            $i++;
-            $hasResult = true;
-
-            // Export previous row to file.
-            if ($needSaveAfterEachRow) {
-                $this->filesystem->appendToFile($filePath, $sql);
-                $sql = '';
-            }
-
-            // Split the insert query into parts to make it to have
-            // 300 rows max to optimize performance on DB import.
-            if ($i % self::INSERT_ROWS_MAX === 0) {
-                $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
-                $sql .= $insertSql;
-            }
-
-            // Prepare current row for export.
-            $row = $this->getAnonymizer()->anonymize($tableName, $row, $tableAnonymization);
-            $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
+    /**
+     * @inheritDoc
+     */
+    public function dumpEntity(string $entityName, string $dir, array $entityConfig = [], string $fileNamePrefix = '20'): void
+    {
+        if (!$entityConfig) {
+            $entityConfig = $this->getConfigurationManager()->getEntityConfig($entityName);
         }
 
-        // Export last row (or all rows) to file.
-        if ($hasResult) {
-            $sql = $this->removeTrailingComma($sql) . ';';
-            if ($needSaveAfterEachRow) {
-                $this->filesystem->appendToFile($filePath, $sql);
-            } else {
-                $this->filesystem->dumpFile($filePath, $sql);
-            }
-        }
+        $params = [
+            'check_ids' => true,
+        ];
+        $this->dumpBase($dir, $entityConfig, $params, $fileNamePrefix);
     }
 
     /**
@@ -150,51 +133,230 @@ class PostgresDataExtractor implements
     }
 
     /**
-     * Returns db connection.
+     * Base method to dump table/entity.
      *
-     * @return Connection
+     * @param string $dir
+     *   Path do directory that contains exported files.
+     * @param array $config
+     *   Table/entity config.
+     * @param array $params
+     *   Processing params. The following are now available:
+     *   - check_ids: TRUE - check row id before dumping to avoid duplicates.
+     * @param string $fileNamePrefix
+     *   File name prefix.
      *
-     * @throws ConnectionNotInjectedException
+     * @return void
+     *
+     * @throws \App\Exception\Service\Extractor\AnonymizerNotInjectedException
+     * @throws \App\Exception\Service\Extractor\ConfigurationManagerNotInjectedException
+     * @throws \App\Exception\Service\Extractor\ConnectionNotInjectedException
+     * @throws \Doctrine\DBAL\Exception
      */
-    private function getConnection(): Connection
+    private function dumpBase(string $dir, array $config, array $params = [], string $fileNamePrefix = ''): void
     {
-        if (!$this->connection) {
-            throw ConnectionNotInjectedException::create();
+        if (!$config) {
+            return;
         }
 
-        return $this->connection;
+        // Prepare some data.
+        $tableAnonymization = $this->getConfigurationManager()->getTableAnonymization($config['table']);
+        $filePath = $dir . '/' . $this->getNewTableFileName($config['table'], $fileNamePrefix);
+        $sql = $insertSql = "INSERT INTO {$config['table']} VALUES" . PHP_EOL;
+
+        $needSaveAfterEachRow = ($config['export_method'] ?? '') === 'row';
+        $hasResult = false;
+        $i = 0;
+        $query = $this->getDataSelectQuery($config);
+
+        if (!$query) {
+            return;
+        }
+
+        // Get rows from db table and export them.
+        foreach ($this->getConnection()->iterateAssociative($query) as $row) {
+            $i++;
+            $hasResult = true;
+
+            // If we need to check ids to avoid duplicate rows.
+            if (!empty($params['check_ids']) && !empty($config['fields']['id'])) {
+                $rowId = (string) ($row[$config['fields']['id']] ?? '');
+                if ($this->getRowIdFromStorage($config['table'], $rowId)) {
+                    continue;
+                }
+
+                $this->saveRowIdToStorage($config['table'], $rowId);
+            }
+
+            // Export previous row to file.
+            if ($needSaveAfterEachRow && $sql !== $insertSql) {
+                $this->filesystem->appendToFile($filePath, $sql);
+                $sql = '';
+            }
+
+            // Split the insert query into parts to make it to have
+            // 300 rows max to optimize performance on DB import.
+            if ($i % self::INSERT_ROWS_MAX === 0) {
+                $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
+                $sql .= $insertSql;
+            }
+
+            // Prepare current row for export.
+            $row = $this->getAnonymizer()->anonymize($config['table'], $row, $tableAnonymization);
+            $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
+
+            // Export relations (if any).
+            $this->dumpTableRelations($config['relations'] ?? [], $row, $dir, $params, $fileNamePrefix);
+        }
+
+        // Export last row (or all rows) to file.
+        if ($hasResult && $sql !== $insertSql) {
+            $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
+            $this->filesystem->appendToFile($filePath, $sql);
+        }
     }
 
     /**
-     * Returns configuration manager.
+     * Dump data from related tables.
      *
-     * @return ConfigurationManagerInterface
+     * @param array $relations
+     *   Related tables' config.
+     * @param array $row
+     *   A row from current table.
+     * @param string $dir
+     *   Path do directory that contains exported files.
+     * @param array $params
+     *   Processing params. The following are now available:
+     *   - check_ids: TRUE - check row id to avoid duplicate rows.
+     * @param string $fileNamePrefix
+     *   File name prefix.
      *
-     * @throws ConfigurationManagerNotInjectedException
+     * @return void
+     *
+     * @throws \App\Exception\Service\Extractor\AnonymizerNotInjectedException
+     * @throws \App\Exception\Service\Extractor\ConfigurationManagerNotInjectedException
+     * @throws \App\Exception\Service\Extractor\ConnectionNotInjectedException
+     * @throws \Doctrine\DBAL\Exception
      */
-    private function getConfigurationManager(): ConfigurationManagerInterface
+    private function dumpTableRelations(array $relations, array $row, string $dir, array $params = [], string $fileNamePrefix = ''): void
     {
-        if (!$this->configurationManager) {
-            throw ConfigurationManagerNotInjectedException::create();
-        }
+        foreach ($relations as $relationName => $relationConfig) {
+            $relationConfig += [
+                'table' => $relationName,
+                'get' => 1,
+            ];
 
-        return $this->configurationManager;
+            // If relation is an entity.
+            if (!empty($relationConfig['is_entity'])) {
+                // Get entity type, bundle and id.
+                $entityType = str_starts_with($relationConfig['values']['type'] ?? '', '%')
+                    ? $row[substr($relationConfig['values']['type'], 1)]
+                    : $relationConfig['values']['type'] ?? '';
+                $entityBundle = str_starts_with($relationConfig['values']['bundle'] ?? '', '%')
+                    ? $row[substr($relationConfig['values']['bundle'], 1)]
+                    : $relationConfig['values']['bundle'] ?? '';
+                $entityId = str_starts_with((string) ($relationConfig['values']['id'] ?? ''), '%')
+                    ? $row[substr($relationConfig['values']['id'], 1)]
+                    : $relationConfig['values']['id'] ?? '';
+
+                // If type/bundle are not defined then we take it from db table
+                // that represents current entity. Let's just find entity by id.
+                if (!$entityType && !empty($relationConfig['fields']['type'])
+                    || !$entityBundle && $relationConfig['fields']['bundle']
+                ) {
+                    $query = [
+                        'table' => $relationConfig['table'],
+                        'get' => 1,
+                        'where' => [
+                            $relationConfig['fields']['id'] => $entityId,
+                        ],
+                        'limit' => 1,
+                    ];
+
+                    // Get entity type and bundle.
+                    $query = $this->getDataSelectQuery($query);
+                    foreach ($this->getConnection()->iterateAssociative($query) as $entityRow) {
+                        if (!$entityType) {
+                            $entityType = $entityRow[$relationConfig['fields']['type']];
+                        }
+                        if (!$entityBundle) {
+                            $entityBundle = $entityRow[$relationConfig['fields']['bundle']];
+                        }
+                    }
+                }
+
+                $config = $this->getConfigurationManager()->getEntityConfig($entityType . ($entityBundle ? '__' . $entityBundle : ''));
+                // If related entity type should be fully dumped then we
+                // don't need to dump any particular entity here.
+                if (($config['get'] ?? 0) === 1) {
+                    continue;
+                }
+
+                // Otherwise we should dump a current (single) entity.
+                if ($config) {
+                    $config['where'][$relationConfig['fields']['id']] = $entityId;
+                    $config['get'] = 1;
+                }
+
+            // If relation is a table.
+            } else {
+                $config = $this->getConfigurationManager()->getTableConfig($relationConfig['table']);
+                // If related table should be fully dumped then we
+                // don't need to dump any particular row here.
+                if (($config['get'] ?? 0) === 1) {
+                    continue;
+                }
+
+                // Preprocess conditions.
+                foreach ($relationConfig['where'] ?? [] as $key => $value) {
+                    // If value is like `%fieldname` then we need to copy a
+                    // value of respective field from parent table row.
+                    if (str_starts_with((string) $value, '%')) {
+                        $relationConfig['where'][$key] = $row[substr($value, 1)];
+                    }
+                }
+
+                $config = $relationConfig;
+            }
+
+            $this->dumpBase($dir, $config, $params, $fileNamePrefix);
+        }
     }
 
     /**
-     * Returns configuration manager.
+     * Saves row id to internal storage.
      *
-     * @return \App\Service\Anonymization\AnonymizerInterface
+     * This may be used to perform and additional check to save unique rows only
+     * and avoid duplicates in export files.
      *
-     * @throws \App\Exception\Service\DDL\Extractor\AnonymizerNotInjectedException
+     * @param string $tableName
+     *   DB table name.
+     * @param string $id
+     *   Row id.
+     *
+     * @return void
      */
-    private function getAnonymizer(): AnonymizerInterface
+    private function saveRowIdToStorage(string $tableName, string $id): void
     {
-        if (!$this->anonymizer) {
-            throw AnonymizerNotInjectedException::create();
-        }
+        $this->data['tables'][$tableName][$id] = $id;
+    }
 
-        return $this->anonymizer;
+    /**
+     * Retrieves row id from internal storage.
+     *
+     * This may be used to perform and additional check to save unique rows only
+     * and avoid duplicates in export files.
+     *
+     * @param string $tableName
+     *   DB table name.
+     * @param string $id
+     *   Row id.
+     *
+     * @return string
+     *   Row id if it's already exists in storage, or empty string otherwise.
+     */
+    private function getRowIdFromStorage(string $tableName, string $id): string
+    {
+        return $this->data['tables'][$tableName][$id] ?? '';
     }
 
     /**
@@ -205,13 +367,19 @@ class PostgresDataExtractor implements
      *
      * @return string
      *   The SELECT sql query to get data from table.
+     *   If $tableConfig['get'] === 0 (should select nothing) then empty string
+     *   is returned.
      */
     private function getDataSelectQuery(array $tableConfig): string
     {
+        if (empty($tableConfig['get'])) {
+            return '';
+        }
+
         $query = 'SELECT * FROM ' . $tableConfig['table'];
 
         $where = [];
-        foreach ($tableConfig['where'] as $fieldName => $condition) {
+        foreach ($tableConfig['where'] ?? [] as $fieldName => $condition) {
             if (!is_array($condition)) {
                 $condition = [$condition, '='];
             }
@@ -235,7 +403,11 @@ class PostgresDataExtractor implements
         }
 
         if ($where) {
-            $query .= ' WHERE ' . implode(' AND ', $where);
+            $query .= ' WHERE (' . implode(') AND (', $where) . ')';
+        }
+
+        if (!empty($tableConfig['limit'])) {
+            $query .= ' LIMIT ' . $tableConfig['limit'];
         }
 
         return $query;
@@ -304,5 +476,53 @@ class PostgresDataExtractor implements
         $name = str_replace('"', '', $name);
 
         return ($prefix ? $prefix . '_' : '') . $name . '.sql';
+    }
+
+    /**
+     * Returns db connection.
+     *
+     * @return Connection
+     *
+     * @throws ConnectionNotInjectedException
+     */
+    private function getConnection(): Connection
+    {
+        if (!$this->connection) {
+            throw ConnectionNotInjectedException::create();
+        }
+
+        return $this->connection;
+    }
+
+    /**
+     * Returns configuration manager.
+     *
+     * @return ConfigurationManagerInterface
+     *
+     * @throws ConfigurationManagerNotInjectedException
+     */
+    private function getConfigurationManager(): ConfigurationManagerInterface
+    {
+        if (!$this->configurationManager) {
+            throw ConfigurationManagerNotInjectedException::create();
+        }
+
+        return $this->configurationManager;
+    }
+
+    /**
+     * Returns configuration manager.
+     *
+     * @return \App\Service\Anonymization\AnonymizerInterface
+     *
+     * @throws \App\Exception\Service\Extractor\AnonymizerNotInjectedException
+     */
+    private function getAnonymizer(): AnonymizerInterface
+    {
+        if (!$this->anonymizer) {
+            throw AnonymizerNotInjectedException::create();
+        }
+
+        return $this->anonymizer;
     }
 }

@@ -25,6 +25,14 @@ interface ConfigurationManagerInterface
     public function getTables(): array;
 
     /**
+     * Returns entities config.
+     *
+     * @return array
+     *   The database.entities section from project config.
+     */
+    public function getEntities(): array;
+
+    /**
      * Returns anonymization config.
      *
      * @return array
@@ -37,12 +45,32 @@ interface ConfigurationManagerInterface
      *
      * @param string $tableName
      *   DB table name.
+     * @param bool $strict
+     *   True - return config only if there is an item with table name as a key
+     *   in the tables array. Otherwise, empty array is returned.
      *
      * @return array|float[]
      *   Table config from config file, enriched with default values for all
      *   available parameters.
+     *   If there is no config for specified table then default config is
+     *   returned anyway. Unless $strict=true - then empty array is returned.
      */
-    public function getTableConfig(string $tableName): array;
+    public function getTableConfig(string $tableName, bool $strict = false): array;
+
+    /**
+     * Returns entity dump config.
+     *
+     * Entity is a table that has relationships with other tables.
+     *
+     * @param string $entityName
+     *   Entity name.
+     *
+     * @return array|float[]
+     *   Entity config from config file, enriched with default values for all
+     *   available parameters.
+     *   If there is no config for an entity then empty array is returned.
+     */
+    public function getEntityConfig(string $entityName): array;
 
     /**
      * Returns table anonymyzation config.

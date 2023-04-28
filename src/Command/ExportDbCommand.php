@@ -7,11 +7,13 @@ namespace App\Command;
 use App\Configuration\ConfigurationManager;
 use App\Configuration\ConfigurationManagerInterface;
 use App\Exception\DsnNotValidException;
-use App\Exception\Service\DDL\DataExtractorNotFoundException;
-use App\Exception\Service\DDL\InvalidExtractorInterfaceException;
-use App\Exception\Service\DDL\StructureExtractorNotFoundException;
+use App\Exception\Service\Extractor\DataExtractorNotFoundException;
+use App\Exception\Service\Extractor\InvalidExtractorInterfaceException;
+use App\Exception\Service\Extractor\StructureExtractorNotFoundException;
 use App\Infrastructure\DBConnector;
 use App\Service\Anonymization\Anonymizer;
+use App\Service\Anonymization\AnonymizerInterface;
+use App\Service\Extractor\DbDataExtractorInterface;
 use App\Service\Extractor\ExtractorFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -47,6 +49,20 @@ class ExportDbCommand extends Command
      * @var \App\Configuration\ConfigurationManagerInterface
      */
     private ConfigurationManagerInterface $configurationManager;
+
+    /**
+     * Data anonymizer.
+     *
+     * @var \App\Service\Anonymization\AnonymizerInterface
+     */
+    private AnonymizerInterface $anonymizer;
+
+    /**
+     * Exports data from db.
+     *
+     * @var \App\Service\Extractor\DbDataExtractorInterface
+     */
+    private DbDataExtractorInterface $dataExtractor;
 
     /**
      * The io object.
@@ -132,6 +148,9 @@ class ExportDbCommand extends Command
             $this->io = new SymfonyStyle($input, $output);
             $this->connection = $this->connector->create($dsn);
             $this->configurationManager =  new ConfigurationManager($configPath);
+            $this->anonymizer = new Anonymizer($this->configurationManager);
+            $this->dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager, $this->anonymizer);
+
             $folderName = $this->getNewDumpFolderName($this->connection->getDatabase());
             $this->dumpPath = $this->getDumpFolderPath($folderName);
             $this->createDumpFolder($this->dumpPath);
@@ -144,6 +163,10 @@ class ExportDbCommand extends Command
             $steps[] = [
                 'title' => 'Database tables export',
                 'method' => 'dumpTables',
+            ];
+            $steps[] = [
+                'title' => 'Database entities export',
+                'method' => 'dumpEntities',
             ];
             $totalSteps = count($steps);
 
@@ -170,8 +193,8 @@ class ExportDbCommand extends Command
      *
      * @return void
      *
-     * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
-     * @throws \App\Exception\Service\DDL\StructureExtractorNotFoundException
+     * @throws \App\Exception\Service\Extractor\InvalidExtractorInterfaceException
+     * @throws \App\Exception\Service\Extractor\StructureExtractorNotFoundException
      */
     public function dumpStructure(): void
     {
@@ -186,26 +209,43 @@ class ExportDbCommand extends Command
      *
      * @return void
      *
-     * @throws \App\Exception\Service\DDL\DataExtractorNotFoundException
-     * @throws \App\Exception\Service\DDL\InvalidExtractorInterfaceException
      * @throws \Doctrine\DBAL\Exception
      */
-    public function dumpTables()
+    public function dumpTables(): void
     {
-        $anonymizer = new Anonymizer($this->configurationManager);
-        $dataExtractor = $this->extractorFactory->createDataExtractor($this->connection, $this->configurationManager, $anonymizer);
         $tables = $this->connection->createSchemaManager()->listTableNames();
         sort($tables);
 
         foreach ($tables as $tableName) {
             $tableConfig = $this->configurationManager->getTableConfig($tableName);
-            if ($dataExtractor->canTableBeDumped($tableName, $tableConfig)) {
+            if ($this->dataExtractor->canTableBeDumped($tableName, $tableConfig)) {
                 $this->write("Exporting $tableName...");
-                $dataExtractor->dumpTable($tableName, $this->dumpPath, $tableConfig);
+                $this->dataExtractor->dumpTable($tableName, $this->dumpPath, $tableConfig);
                 $this->writeln(' done.', false);
             } else {
                 $this->writeln("Skipping $tableName.");
             }
+        }
+    }
+
+    /**
+     * Dumps db entities (from database.entities config section).
+     *
+     * @return void
+     */
+    public function dumpEntities(): void
+    {
+        $entities = $this->configurationManager->getEntities();
+        foreach ($entities as $entityName => $entityConfig) {
+            $entityConfig = $this->configurationManager->getEntityConfig($entityName);
+            // Skip entities that are configured to export 0% of data.
+            if (empty($entityConfig['get'])) {
+                continue;
+            }
+
+            $this->write("Exporting $entityName...");
+            $this->dataExtractor->dumpEntity($entityName, $this->dumpPath, $entityConfig);
+            $this->writeln(' done.', false);
         }
     }
 
@@ -257,7 +297,7 @@ class ExportDbCommand extends Command
      *
      * @return void
      */
-    private function write(string $message, bool $withDuration = true)
+    private function write(string $message, bool $withDuration = true): void
     {
         $this->io->write(($withDuration ? '[' . $this->getDurationFormatted() . '] ' : '') . $message);
     }
@@ -272,7 +312,7 @@ class ExportDbCommand extends Command
      *
      * @return void
      */
-    private function writeln(string $message, bool $withDuration = true)
+    private function writeln(string $message, bool $withDuration = true): void
     {
         $this->write($message, $withDuration);
         $this->io->writeln('');

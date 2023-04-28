@@ -35,6 +35,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
         }
 
         $this->config = $config;
+        $this->copyTablesFromEntities();
     }
 
     /**
@@ -48,6 +49,14 @@ class ConfigurationManager implements ConfigurationManagerInterface
     /**
      * @inheritDoc
      */
+    public function getEntities(): array
+    {
+        return $this->config['database']['entities'] ?? [];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getAnonymization(): array
     {
         return $this->config['database']['anonymization'] ?? [];
@@ -56,18 +65,29 @@ class ConfigurationManager implements ConfigurationManagerInterface
     /**
      * @inheritDoc
      */
-    public function getTableConfig(string $tableName): array
+    public function getTableConfig(string $tableName, bool $strict = false): array
     {
         $configTables = $this->getTables();
         $config = [];
+        $enrichConfigName = '';
+
+        if (!empty($configTables[$tableName]['_is_enriched'])) {
+            return $configTables[$tableName];
+        }
+
+        if ($strict) {
+            return $configTables[$tableName] ?? [];
+        }
 
         foreach ($configTables as $configTableKey => $configTableValue) {
             if ($configTableKey === $tableName) {
                 $config = is_numeric($configTableValue)
                     ? ['get' => (float) $configTableValue]
                     : $configTableValue;
+                $enrichConfigName = $configTableKey;
             } elseif (!empty($configTableValue['table']) && $configTableValue['table'] === $tableName) {
                 $config = $configTableValue;
+                $enrichConfigName = $configTableKey;
             } elseif (!empty($configTableValue['table_regex']) && preg_match($configTableValue['table_regex'], $tableName)) {
                 $config = $configTableValue;
             }
@@ -84,6 +104,37 @@ class ConfigurationManager implements ConfigurationManagerInterface
             'where' => [],
             'export_method' => '',
         ];
+
+        // Save enriched config back to original table config array to
+        // optimize performance for the next table config search.
+        if ($enrichConfigName) {
+            $config['_is_enriched'] = true;
+            $this->setTableConfig($enrichConfigName, $config);
+        }
+
+        return $config;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEntityConfig(string $entityName): array
+    {
+        $configEntities = $this->getEntities();
+        $config = $configEntities[$entityName] ?? [];
+
+        if ($config && empty($config['_is_enriched'])) {
+            $config += [
+                'get' => 0.01,
+                'table' => $entityName,
+                'where' => [],
+                'relations' => [],
+                'fields' => [],
+                'export_method' => '',
+                '_is_enriched' => true,
+            ];
+            $this->setEntityConfig($entityName, $config);
+        }
 
         return $config;
     }
@@ -139,5 +190,69 @@ class ConfigurationManager implements ConfigurationManagerInterface
     public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
     {
         return (bool) $this->getTablePercentage($tableName, $tableConfig);
+    }
+
+    /**
+     * Update database.tables list with tables from database.entities section.
+     *
+     * Here we copy tables from entities (and their relations) to the
+     * database.tables section of config and set get=0 to them to avoid
+     * direct exporting data from these tables.
+     * If we need a full dump of data from some table then we should
+     * exclude it from relations (and maybe add to database.tables section
+     * with get=1).
+     *
+     * @param array $list
+     *   List of entities or relations with their config.
+     *   If not set then we get all entities from config file.
+     *
+     * @return void
+     */
+    private function copyTablesFromEntities(array $list = []): void
+    {
+        if (empty($list)) {
+            $list = $this->getEntities();
+        }
+
+        foreach ($list as $entityName => $entityConfig) {
+            $entityConfig['table'] = $entityConfig['table'] ?? $entityName;
+            if (empty($this->getTableConfig($entityConfig['table'], true))) {
+                $this->setTableConfig($entityConfig['table'], ['get' => 0]);
+            }
+
+            if (!empty($entityConfig['relations'])) {
+                $this->copyTablesFromEntities($entityConfig['relations']);
+            }
+        }
+    }
+
+    /**
+     * Updates table config.
+     *
+     * @param string $tableName
+     *   DB table name.
+     * @param array $tableConfig
+     *   New table dump config.
+     *
+     * @return void
+     */
+    private function setTableConfig(string $tableName, array $tableConfig): void
+    {
+        $this->config['database']['tables'][$tableName] = $tableConfig;
+    }
+
+    /**
+     * Updates entity config.
+     *
+     * @param string $entityName
+     *   Entity name.
+     * @param array $entityConfig
+     *   New entity dump config.
+     *
+     * @return void
+     */
+    private function setEntityConfig(string $entityName, array $entityConfig): void
+    {
+        $this->config['database']['entities'][$entityName] = $entityConfig;
     }
 }
