@@ -85,7 +85,11 @@ class ConfigurationManager implements ConfigurationManagerInterface
         }
 
         if ($strict) {
-            return $configTables[$tableName] ?? [];
+            $config = $configTables[$tableName] ?? [];
+
+            return is_numeric($config)
+                ? ['get' => (float) $config]
+                : $config;
         }
 
         foreach ($configTables as $configTableKey => $configTableValue) {
