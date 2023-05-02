@@ -187,11 +187,11 @@ options:
   # DB structure export step:
   structure:
     # 1 - skip this step, 0 - don't skip.
-    skip: 0
+    should_skip: 0
   # DB tables export step:
   tables:
     # 1 - skip this step, 0 - don't skip.
-    skip: 0
+    should_skip: 0
     # Default percentage, is used for tables that are not listed in the
     # `database.tables` section. By default, all data from such tables should be
     # fully exported (1 is 100%).
@@ -212,7 +212,7 @@ options:
   # DB entities export step:
   entities:
     # 1 - skip this step, 0 - don't skip.
-    skip: 0
+    should_skip: 0
     # Default percentage, is used for entities without explicit `get` parameter.
     # By default, 1% of entities is dumped.
     get: 0.01
@@ -226,4 +226,4 @@ options:
   # DB data anonymization (works for both tables and entities):
   anonymization:
     # 1 - skip anonymization, 0 - don't skip.
-    skip: 0
+    should_skip: 0

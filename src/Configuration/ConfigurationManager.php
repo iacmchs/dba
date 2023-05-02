@@ -218,7 +218,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
      */
     public function shouldSkip(string $sectionName): bool
     {
-        return (bool) ($this->getOption($sectionName, 'skip') ?? false);
+        return (bool) ($this->getOption($sectionName, 'should_skip') ?? false);
     }
 
     /**
@@ -229,22 +229,22 @@ class ConfigurationManager implements ConfigurationManagerInterface
     private function initOptions(): void
     {
         $this->config['options']['structure'] = ($this->config['options']['structure'] ?? []) + [
-                'skip' => 0,
+                'should_skip' => 0,
             ];
         $this->config['options']['tables'] = ($this->config['options']['tables'] ?? []) + [
-                'skip' => 0,
+                'should_skip' => 0,
                 'get' => 1,
                 'insert_rows_max' => 300,
                 'export_method' => 'default',
             ];
         $this->config['options']['entities'] = ($this->config['options']['entities'] ?? []) + [
-                'skip' => 0,
+                'should_skip' => 0,
                 'get' => 0.01,
                 'insert_rows_max' => 300,
                 'export_method' => 'default',
             ];
         $this->config['options']['anonymization'] = ($this->config['options']['anonymization'] ?? []) + [
-                'skip' => 0,
+                'should_skip' => 0,
             ];
     }
 
