@@ -24,12 +24,6 @@ class PostgresDataExtractor implements
     AnonymizerSetterInterface,
     ConfigurationManagerSetterInterface
 {
-
-    /**
-     * The maximum number of rows that a single INSERT query may have.
-     */
-    const INSERT_ROWS_MAX = 300;
-
     /**
      * DB connection.
      *
@@ -88,6 +82,7 @@ class PostgresDataExtractor implements
 
         $params = [
             'check_ids' => true,
+            'options' => $this->getConfigurationManager()->getOptions('entities'),
         ];
         $this->dumpBase($dir, $entityConfig, $params, $fileNamePrefix);
     }
@@ -142,6 +137,8 @@ class PostgresDataExtractor implements
      * @param array $params
      *   Processing params. The following are now available:
      *   - check_ids: TRUE - check row id before dumping to avoid duplicates.
+     *   - options: processing options like options.tables or options.entities
+     *     from project config file.
      * @param string $fileNamePrefix
      *   File name prefix.
      *
@@ -161,9 +158,11 @@ class PostgresDataExtractor implements
         // Prepare some data.
         $tableAnonymization = $this->getConfigurationManager()->getTableAnonymization($config['table']);
         $filePath = $dir . '/' . $this->getNewTableFileName($config['table'], $fileNamePrefix);
-        $sql = $insertSql = "INSERT INTO {$config['table']} VALUES" . PHP_EOL;
+        $maxInsertRows = ($params['options']['insert_rows_max'] ?? $this->getConfigurationManager()->getOption('tables', 'insert_rows_max')) ?: 1;
+        $exportMethod = ($params['options']['export_method'] ?? $this->getConfigurationManager()->getOption('tables', 'export_method')) ?: '';
+        $needSaveAfterEachRow = $exportMethod === 'row';
 
-        $needSaveAfterEachRow = ($config['export_method'] ?? '') === 'row';
+        $sql = $insertSql = "INSERT INTO {$config['table']} VALUES" . PHP_EOL;
         $hasResult = false;
         $i = 0;
         $query = $this->getDataSelectQuery($config);
@@ -194,14 +193,17 @@ class PostgresDataExtractor implements
             }
 
             // Split the insert query into parts to make it to have
-            // 300 rows max to optimize performance on DB import.
-            if ($i % self::INSERT_ROWS_MAX === 0) {
+            // X rows max to optimize performance on DB import.
+            if (($i % $maxInsertRows) === 0) {
                 $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
                 $sql .= $insertSql;
             }
 
-            // Prepare current row for export.
-            $row = $this->getAnonymizer()->anonymize($config['table'], $row, $tableAnonymization);
+            // Anonymize current row before export.
+            if (!$this->getConfigurationManager()->shouldSkip('anonymization')) {
+                $row = $this->getAnonymizer()->anonymize($config['table'], $row, $tableAnonymization);
+            }
+
             $sql .= $this->getValuesQuery($row) . ',' . PHP_EOL;
 
             // Export relations (if any).

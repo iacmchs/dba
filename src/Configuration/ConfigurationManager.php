@@ -35,6 +35,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
         }
 
         $this->config = $config;
+        $this->initOptions();
         $this->copyTablesFromEntities();
     }
 
@@ -63,6 +64,14 @@ class ConfigurationManager implements ConfigurationManagerInterface
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getOptions(string $sectionName = ''): array
+    {
+        return $sectionName ? $this->config['options'][$sectionName] : $this->config['options'];
+    }
+
+    /**
      * @inheritDoc
      */
     public function getTableConfig(string $tableName, bool $strict = false): array
@@ -76,7 +85,11 @@ class ConfigurationManager implements ConfigurationManagerInterface
         }
 
         if ($strict) {
-            return $configTables[$tableName] ?? [];
+            $config = $configTables[$tableName] ?? [];
+
+            return is_numeric($config)
+                ? ['get' => (float) $config]
+                : $config;
         }
 
         foreach ($configTables as $configTableKey => $configTableValue) {
@@ -98,11 +111,11 @@ class ConfigurationManager implements ConfigurationManagerInterface
         }
 
         $config += [
-            'get' => 1,
+            'get' => $this->getOption('tables', 'get'),
             'table' => $tableName,
             'table_regex' => '',
             'where' => [],
-            'export_method' => '',
+            'export_method' => $this->getOption('tables', 'export_method'),
         ];
 
         // Save enriched config back to original table config array to
@@ -125,12 +138,12 @@ class ConfigurationManager implements ConfigurationManagerInterface
 
         if ($config && empty($config['_is_enriched'])) {
             $config += [
-                'get' => 0.01,
+                'get' => $this->getOption('entities', 'get'),
                 'table' => $entityName,
                 'where' => [],
                 'relations' => [],
                 'fields' => [],
-                'export_method' => '',
+                'export_method' => $this->getOption('entities', 'export_method'),
                 '_is_enriched' => true,
             ];
             $this->setEntityConfig($entityName, $config);
@@ -181,7 +194,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
             $tableConfig = $this->getTableConfig($tableName);
         }
 
-        return $tableConfig['get'] ?? 1;
+        return $tableConfig['get'] ?? $this->getOption('tables', 'get');
     }
 
     /**
@@ -190,6 +203,49 @@ class ConfigurationManager implements ConfigurationManagerInterface
     public function canTableBeDumped(string $tableName, array $tableConfig = []): bool
     {
         return (bool) $this->getTablePercentage($tableName, $tableConfig);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getOption(string $sectionName, string $optionName): mixed
+    {
+        return $this->config['options'][$sectionName][$optionName] ?? null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function shouldSkip(string $sectionName): bool
+    {
+        return (bool) ($this->getOption($sectionName, 'should_skip') ?? false);
+    }
+
+    /**
+     * Sets default values to options that are not specified in config file.
+     *
+     * @return void
+     */
+    private function initOptions(): void
+    {
+        $this->config['options']['structure'] = ($this->config['options']['structure'] ?? []) + [
+                'should_skip' => 0,
+            ];
+        $this->config['options']['tables'] = ($this->config['options']['tables'] ?? []) + [
+                'should_skip' => 0,
+                'get' => 1,
+                'insert_rows_max' => 300,
+                'export_method' => 'default',
+            ];
+        $this->config['options']['entities'] = ($this->config['options']['entities'] ?? []) + [
+                'should_skip' => 0,
+                'get' => 0.01,
+                'insert_rows_max' => 300,
+                'export_method' => 'default',
+            ];
+        $this->config['options']['anonymization'] = ($this->config['options']['anonymization'] ?? []) + [
+                'should_skip' => 0,
+            ];
     }
 
     /**

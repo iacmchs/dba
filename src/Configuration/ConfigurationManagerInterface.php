@@ -41,6 +41,18 @@ interface ConfigurationManagerInterface
     public function getAnonymization(): array;
 
     /**
+     * Returns processing options.
+     *
+     * @param string $sectionName
+     *   The name of the section in options array.
+     *
+     * @return array
+     *   The options.[section] from project config if $sectionName is set,
+     *   the entire options array otherwise.
+     */
+    public function getOptions(string $sectionName = ''): array;
+
+    /**
      * Returns table dump config.
      *
      * @param string $tableName
@@ -84,6 +96,18 @@ interface ConfigurationManagerInterface
     public function getTableAnonymization(string $tableName): array;
 
     /**
+     * Returns the value of respective option.
+     *
+     * @param string $sectionName
+     *   The name of the section in options array.
+     * @param string $optionName
+     *   The name of the option.
+     *
+     * @return mixed
+     */
+    public function getOption(string $sectionName, string $optionName): mixed;
+
+    /**
      * Get table data dump percentage.
      *
      * @param string $tableName
@@ -111,4 +135,15 @@ interface ConfigurationManagerInterface
      *   True if table data dump percentage is > 0.
      */
     public function canTableBeDumped(string $tableName, array $tableConfig = []): bool;
+
+    /**
+     * Checks if some step/operation should be skipped during the export.
+     *
+     * @param string $sectionName
+     *   The name of the section in options array.
+     *
+     * @return bool
+     *   True if step/operation should be skipped, or false otherwise.
+     */
+    public function shouldSkip(string $sectionName): bool;
 }
