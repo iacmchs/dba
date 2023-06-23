@@ -240,3 +240,5 @@ options:
   anonymization:
     # 1 - skip anonymization, 0 - don't skip.
     should_skip: 0
+    # Locale for Faker methods.
+    faker_locale: en_US
