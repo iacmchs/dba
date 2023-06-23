@@ -24,7 +24,8 @@ class Anonymizer implements AnonymizerInterface
 
     public function __construct(private readonly ConfigurationManagerInterface $configurationManager)
     {
-        $this->faker = FakerFactory::create();
+        $fakerLocale = $this->configurationManager->getOption('anonymization', 'faker_locale');
+        $this->faker = FakerFactory::create($fakerLocale);
     }
 
     /**
