@@ -130,10 +130,14 @@ class Anonymizer implements AnonymizerInterface
             }
         }
 
-        // Call a method to anonymize value.
+        // Call required method to anonymize a value.
         switch (strtolower($anonymization['method'])) {
             case 'faker':
                 $value = call_user_func_array(array($this->faker, $subMethod), $anonymization['args'] ?? []);
+                break;
+
+            case 'preg_replace':
+                $value = call_user_func_array($anonymization['method'], $anonymization['args']);
                 break;
 
             case 'concat':
