@@ -26,21 +26,31 @@ Usage:
 php bin/console app:db-export <dsn> <config-path>
 ```
 
+Arguments:
+- dsn - the DB credentials. Should match the pattern:
+  "driver://user:password@host:port/database".
+- config-path - a path to the project config file.
+
 Example:
 ```
+cd /path/to/dbanonymizer
 php bin/console app:db-export "pdo-pgsql://poirot:HeRcUlEs@agatha.portal:32888/portal_main" portal.dbaconfig.yml
 ```
 
 Or if you don't have php installed on your machine, but have lando:
 ```
+cd /path/to/dbanonymizer
 lando start
 lando console app:db-export "pdo-pgsql://poirot:HeRcUlEs@agatha.portal:32888/portal_main" portal.dbaconfig.yml
 ```
 
-Arguments:
-- dsn - the DB credentials. Should match the pattern:
-  "driver://user:password@host:port/database".
-- config-path - a path to the project config file.
+Or if you want to dump a db from another docker/lando container:
+```
+# Start a db container, get its internal docker url and then run:
+cd /path/to/dbanonymizer
+lando start
+lando console app:db-export "pdo-pgsql://poirot:HeRcUlEs@database.container.internal/portal_main" portal.dbaconfig.yml
+```
 
 ## Notes
 
