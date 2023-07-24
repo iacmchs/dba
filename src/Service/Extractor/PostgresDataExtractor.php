@@ -160,11 +160,9 @@ class PostgresDataExtractor implements
         $filePath = $dir . '/' . $this->getNewTableFileName($config['table'], $fileNamePrefix);
         $maxInsertRows = ($params['options']['insert_rows_max'] ?? $this->getConfigurationManager()->getOption('tables', 'insert_rows_max')) ?: 1;
         $exportMethod = ($params['options']['export_method'] ?? $this->getConfigurationManager()->getOption('tables', 'export_method')) ?: '';
-        $needSaveAfterEachRow = $exportMethod === 'row';
 
         $sql = $insertSql = "INSERT INTO {$config['table']} VALUES" . PHP_EOL;
-        $hasResult = false;
-        $i = 0;
+        $numRows = 0;
         $query = $this->getDataSelectQuery($config);
 
         if (!$query) {
@@ -173,9 +171,6 @@ class PostgresDataExtractor implements
 
         // Get rows from db table and export them.
         foreach ($this->getConnection()->iterateAssociative($query) as $row) {
-            $i++;
-            $hasResult = true;
-
             // If we need to check ids to avoid duplicate rows.
             if (!empty($params['check_ids']) && !empty($config['fields']['id'])) {
                 $rowId = (string) ($row[$config['fields']['id']] ?? '');
@@ -186,16 +181,17 @@ class PostgresDataExtractor implements
                 $this->saveRowIdToStorage($config['table'], $rowId);
             }
 
-            // Export previous row to file.
-            if ($needSaveAfterEachRow && $sql !== $insertSql) {
-                $this->filesystem->appendToFile($filePath, $sql);
-                $sql = '';
-            }
-
             // Split the insert query into parts to make it to have
             // X rows max to optimize performance on DB import.
-            if (($i % $maxInsertRows) === 0) {
+            if (0 === (++$numRows % $maxInsertRows)) {
                 $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
+
+                // Export rows to file right away if needed.
+                if ('max_rows' === $exportMethod) {
+                    $this->filesystem->appendToFile($filePath, $sql);
+                    $sql = '';
+                }
+
                 $sql .= $insertSql;
             }
 
@@ -211,7 +207,7 @@ class PostgresDataExtractor implements
         }
 
         // Export last row (or all rows) to file.
-        if ($hasResult && $sql !== $insertSql) {
+        if ($numRows && $sql !== $insertSql) {
             $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
             $this->filesystem->appendToFile($filePath, $sql);
         }

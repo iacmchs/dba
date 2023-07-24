@@ -20,14 +20,14 @@ database:
       table_regex: '/^cache_.*/'
       get: 0
     # Get 80% of rows from this table where `data` column is empty.
-    # The `export_method: row` option means that each row would be immediately
+    # The `export_method: max_rows` option means that rows would be immediately
     # saved to the file during the export. See more details in the `options`
     # section of this file.
     actions:
       get: 0.8
       where:
         whatever: ['data="" OR data IS NULL', 'expression']
-      export_method: row
+      export_method: max_rows
 
   # Database entity - is a table that has relation with other tables
   # (by foreign key). Here we can define entities that should be exported.
@@ -218,9 +218,9 @@ options:
     # saved to the file at once to improve performance and reduce disk usage
     # (but it can cause errors due to insufficient memory in case if you have
     # super large data dumps or super low RAM available).
-    # - row: each row would be immediately saved to the file during the export.
-    # Just keep in mind that this option exists, but try to use default
-    # behavior first.
+    # - max_rows: rows are saved to the file during the export more often,
+    # once their number hits `insert_rows_max` value. Just keep in mind that
+    # this option exists, but try to use default behavior first.
     export_method: default
   # DB entities export step:
   entities:
@@ -235,6 +235,9 @@ options:
     # this limit makes sense.
     insert_rows_max: 300
     # Same as `options.tables.export_method`.
+    # But keep in mind: this option does not affect related tables. So the base
+    # table is exported as usual, but related table data is exported to file
+    # more often.
     export_method: default
   # DB data anonymization (works for both tables and entities):
   anonymization:
