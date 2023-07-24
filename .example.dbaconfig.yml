@@ -179,6 +179,19 @@ database:
             - '@test.test'
         # Erase additional user data.
         data: null
+    content:
+      where:
+        type: reference
+      fields:
+        # The title field here looks like 'Magic book (by Hercules Poirot)', as
+        # we can see it contains sensitive information that we're going to strip
+        # (so the result looks like 'Magic book').
+        title:
+          method: preg_replace
+          args:
+            - '! \(.+\)!'
+            - ''
+            - '%title'
 
 # Here you can set some options for DB Anonymizer. These options may be useful
 # for testing and debugging.
@@ -227,3 +240,5 @@ options:
   anonymization:
     # 1 - skip anonymization, 0 - don't skip.
     should_skip: 0
+    # Locale for Faker methods.
+    faker_locale: en_US

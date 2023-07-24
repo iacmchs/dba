@@ -245,6 +245,7 @@ class ConfigurationManager implements ConfigurationManagerInterface
             ];
         $this->config['options']['anonymization'] = ($this->config['options']['anonymization'] ?? []) + [
                 'should_skip' => 0,
+                'faker_locale' => 'en_US',
             ];
     }
 
