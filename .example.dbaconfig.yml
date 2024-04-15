@@ -26,7 +26,7 @@ database:
     actions:
       get: 0.8
       where:
-        whatever: ['data="" OR data IS NULL', 'expression']
+        whatever: ["data='' OR data IS NULL", 'expression']
       export_method: max_rows
 
   # Database entity - is a table that has relation with other tables
