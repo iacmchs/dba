@@ -1,0 +1,45 @@
+name: dbanonymizer
+config:
+  composer_version: 2
+services:
+  appserver:
+    type: php:8.2
+    xdebug: true
+    build_as_root:
+      - apt update
+      - apt install nano mc -y
+      - apt install postgresql libpq-dev -y
+      - docker-php-ext-install pgsql pdo pdo_pgsql
+tooling:
+  phpcs:branch:
+    service: appserver
+    cmd: git diff --diff-filter=d develop --name-only -- '*.php' | xargs -r /app/vendor/bin/phpcs --standard=/app/phpcs.xml --colors
+    description: Runs phpcbf command to fix files updated on current git branch.
+  phpcbf:branch:
+    service: appserver
+    cmd: git diff --diff-filter=d develop --name-only -- '*.php' | xargs -r /app/vendor/bin/phpcbf --standard=/app/phpcs.xml
+    description: Runs phpcbf command to fix files updated on current git branch.
+  phpcs:
+    service: appserver
+    cmd: /app/vendor/bin/phpcs --standard=/app/phpcs.xml --colors
+  phpcbf:
+    service: appserver
+    cmd: /app/vendor/bin/phpcbf --standard=/app/phpcs.xml
+  console:
+    service: appserver
+    cmd: php /app/bin/console
+    description: 'Runs symfony console commands'
+    env:
+      XDEBUG_TRIGGER: 1
+      PHP_IDE_CONFIG: "serverName=localhost"
+  php:
+    service: appserver
+    cmd: php
+  composer:
+    service: appserver
+  phpdebug:
+    service: appserver
+    cmd: php
+    env:
+      XDEBUG_TRIGGER: 1
+      PHP_IDE_CONFIG: "serverName=localhost"
