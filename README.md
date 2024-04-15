@@ -3,6 +3,22 @@
 This tool can grab a full/partial copy of some database and anonymize personal
 or other sensitive data on the fly.
 
+## Why do I need it?
+
+Have you ever faced some issues that require you to copy a DB from live site
+to your local site to debug and fix it? In some cases this may be not a straight
+forward task, because:
+- Live DB may take dozens GBs of space.
+- It may contain some sensitive data that developers should never see,
+  e.g: real names, passport numbers, phone numbers, etc.
+
+Using DB Anonymizer you can create a partial DB dump that has for example 5%
+of actual data and anonymize it. And yes - if some table has related data in
+other tables, it could be exported as well. You can configure the amount of data
+to export for each table.
+
+## How to Use
+
 At the moment PostgreSQL only is supported, but other DBMS support may be
 added in the future.
 
@@ -10,8 +26,6 @@ It requires a config file where you can specify export and anonymization rules
 for tables of your DB (see `.example.dbaconfig.yml`). It may take some time
 to create such config for your project, especially if database has many tables,
 but once it's done you can use it as many times as needed.
-
-## How to Use
 
 ### Initial setup
 
