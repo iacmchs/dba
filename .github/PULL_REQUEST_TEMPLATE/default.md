@@ -1,5 +1,5 @@
 ## Overview
-Describe the changes introduced in this MR, be less technical as possible.
+Describe the changes introduced in this PR, be less technical as possible.
 Focus on **why** and **how** instead of **what** has been done.
 
 ## Screenshots

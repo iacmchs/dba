@@ -80,7 +80,7 @@ lando console app:db-export "pdo-pgsql://poirot:HeRcUlE@database.myportal.intern
 Once export is completed you get a bunch of sql files, and you might want
 to join them into a single file. However, in some cases this single file will
 produce errors during the import. But there is a workaround - import
-DB structure first and then import data. So here's how you can do that:
+DB structure first and then import the data. So here's how you can do that:
 ```shell
 cd /path/to/dumps
 # Move DB structure file outside of a dump folder. 
@@ -90,4 +90,18 @@ cat my_latest_dump/*.sql > data.sql
 # Import DB as usual.
 psql databasename < 00_mydb_structure.sql
 psql databasename < data.sql
+```
+
+## Troubleshooting
+
+In some cases sequences in DB looks broken - they have `last_value=1` instead of
+last id after data import. As a result there would be errors when creating new
+entities like 'id=2 already exists in table X'.
+
+You can fix it manually or by running some script. Here we provide the
+`scripts/sql_fixer.example.php` as an example, you may require to change it to
+fit your table/sequence naming convention or do some other changes, but still
+it's a good starting point. Then you can run it like this:
+```php
+(new SqlFixer($connection))->fixSequences();
 ```
