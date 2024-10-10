@@ -183,7 +183,7 @@ class PostgresDataExtractor implements
 
             // Split the insert query into parts to make it to have
             // X rows max to optimize performance on DB import.
-            if (0 === (++$numRows % $maxInsertRows)) {
+            if (0 === (++$numRows % $maxInsertRows) && $sql !== $insertSql) {
                 $sql = $this->removeTrailingComma($sql) . ';' . PHP_EOL;
 
                 // Export rows to file right away if needed.
